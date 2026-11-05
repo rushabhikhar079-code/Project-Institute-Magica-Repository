@@ -475,6 +475,75 @@
   color: var(--pm-neutral-500);
 }
 
+/* ─── Create Schedule Two-Column Layout ─────────────────────────────────────── */
+.pm-create-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--pm-spacing-5);
+  align-items: start;
+}
+
+.pm-create-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-4);
+}
+
+.pm-create-layout__sidebar {
+  position: sticky;
+  top: var(--pm-spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-4);
+}
+
+.pm-create-layout__actions {
+  display: flex;
+  gap: var(--pm-spacing-3);
+}
+
+.pm-create-layout__actions .pm-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ─── Form Section (replaces pm-create-section) ─────────────────────────────── */
+.pm-form-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pm-form-section__header {
+  padding: var(--pm-spacing-3) var(--pm-spacing-5);
+  border-bottom: 1px solid var(--pm-neutral-200);
+  background: var(--pm-neutral-50);
+}
+
+.pm-form-section__title {
+  font-size: var(--pm-font-size-sm);
+  font-weight: 700;
+  color: var(--pm-neutral-700);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pm-form-section__body {
+  padding: var(--pm-spacing-5);
+}
+
+.pm-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pm-spacing-4);
+}
+
+.pm-input--readonly {
+  background: var(--pm-neutral-50);
+  color: var(--pm-neutral-600);
+  cursor: default;
+}
+
 .pm-create-actions {
   display: flex;
   justify-content: flex-end;
@@ -845,13 +914,24 @@
 }
 
 /* ─── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .pm-create-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-create-layout__sidebar {
+    position: static;
+  }
+}
+
 @media (max-width: 768px) {
   .pm-page {
     padding: var(--pm-spacing-3);
   }
 
   .pm-dialog__form-row,
-  .pm-installment-config__single {
+  .pm-installment-config__single,
+  .pm-form-row {
     grid-template-columns: 1fr;
   }
 
@@ -881,11 +961,13 @@
   }
 
   .pm-create-actions,
+  .pm-create-layout__actions,
   .pm-recording-form__actions {
     flex-direction: column-reverse;
   }
 
   .pm-create-actions .pm-btn,
+  .pm-create-layout__actions .pm-btn,
   .pm-recording-form__actions .pm-btn {
     width: 100%;
     justify-content: center;

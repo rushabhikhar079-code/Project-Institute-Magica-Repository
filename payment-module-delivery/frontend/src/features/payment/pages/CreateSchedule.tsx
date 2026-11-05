@@ -1,10 +1,9 @@
 // ─── Create Schedule Page ──────────────────────────────────────────────────────
-// Full schedule creation flow:
-// 1. Select student
-// 2. Select payment type (Lump Sum, Adhoc, Installment)
-// 3. Select subjects/courses/other fees
-// 4. Configure installments (custom dates, amounts, equal distribution, adjustments)
-// 5. Review summary and save
+// Single-page form layout matching the Adobe XD design.
+// All sections are visible simultaneously on one page — no wizard/stepper.
+// Sections: Student Details, Payment Type, Fee Selection, Discount,
+//           Installment Configuration, Adjustment Options, Remarks,
+//           Payment Summary, Save/Cancel actions.
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Save, UserPlus } from "lucide-react";
 import type {
@@ -30,6 +29,7 @@ import {
   distributeEqually,
   round2,
   verifyInstallmentSum,
+  formatCurrency,
 } from "../paymentCalculations";
 import { PAYMENT_TYPES, FEES_TYPE } from "../paymentConstants";
 import { SubjectSelectionDialog } from "../dialogs/SubjectSelectionDialog";
@@ -60,7 +60,6 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch reference data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -142,7 +141,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
 
   const totalPayable = React.useMemo(() => calculateTotalPayable(feeLines), [feeLines]);
 
-  // ─── Initialize installments when fee lines or payment type changes ──────
+  // ─── Initialize / redistribute installments when fee lines or type changes ─
   useEffect(() => {
     if (totalPayable <= 0) {
       setInstallments([]);
@@ -150,7 +149,6 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
     }
 
     if (paymentType === "LumpSum" || paymentType === "Adhoc") {
-      // Single installment
       setInstallments([
         {
           id: `inst-${Date.now()}`,
@@ -168,7 +166,6 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         },
       ]);
     } else if (paymentType === "Installment" && installments.length === 0) {
-      // Default to 3 installments for custom
       const amounts = distributeEqually(totalPayable, 3);
       setInstallments(
         amounts.map((amount, idx) => ({
@@ -187,10 +184,8 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         })),
       );
     } else if (paymentType === "Installment" && installments.length > 0) {
-      // Recalculate amounts if total changed but keep count
-      // Only auto-redistribute if the sum doesn't match
       const sum = round2(installments.reduce((s, i) => s + i.netAmount, 0));
-      if (sum !== round2(totalPayable) && installments.length > 0) {
+      if (sum !== round2(totalPayable)) {
         const amounts = distributeEqually(totalPayable, installments.length);
         setInstallments(
           installments.map((inst, idx) => ({
@@ -271,6 +266,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
 
   const hasFeeSelection = feeLines.length > 0;
 
+  // ─── Two-column XD layout: left = form sections, right = summary sidebar ──
   return (
     <div className="pm-page">
       <div className="pm-page__header">
@@ -282,117 +278,193 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
       </div>
 
       {error && (
-        <div className="pm-error-banner">
-          {error}
-        </div>
+        <div className="pm-error-banner">{error}</div>
       )}
 
-      {/* Step 1: Select Student */}
-      <div className="pm-card pm-create-section">
-        <h3 className="pm-create-section__title">1. Select Student</h3>
-        {student ? (
-          <div className="pm-student-selected">
-            <div className="pm-student-selected__info">
-              <span className="pm-text-semibold">{student.Name}</span>
-              <span className="pm-text-muted">
-                {student.RegNo_Manual || student.RegNo} | {student.PContact} | {student.CourseNames}
-              </span>
+      <div className="pm-create-layout">
+        {/* ─── Left Column: Form Sections ─────────────────────────────── */}
+        <div className="pm-create-layout__main">
+          {/* ── Student Details ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Student Details</h3>
             </div>
-            <button
-              type="button"
-              className="pm-btn pm-btn--ghost pm-btn--sm"
-              onClick={() => setShowStudentDialog(true)}
-            >
-              Change
-            </button>
+            <div className="pm-form-section__body">
+              {student ? (
+                <div className="pm-student-selected">
+                  <div className="pm-student-selected__info">
+                    <span className="pm-text-semibold">{student.Name}</span>
+                    <span className="pm-text-muted">
+                      {student.RegNo_Manual || student.RegNo} | {student.PContact} | {student.CourseNames}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="pm-btn pm-btn--ghost pm-btn--sm"
+                    onClick={() => setShowStudentDialog(true)}
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="pm-btn pm-btn--secondary"
+                  onClick={() => setShowStudentDialog(true)}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Select Student
+                </button>
+              )}
+            </div>
           </div>
-        ) : (
-          <button
-            type="button"
-            className="pm-btn pm-btn--secondary"
-            onClick={() => setShowStudentDialog(true)}
-          >
-            <UserPlus className="w-4 h-4" />
-            Select Student
-          </button>
-        )}
-      </div>
 
-      {/* Step 2: Select Payment Type */}
-      <div className="pm-card pm-create-section">
-        <h3 className="pm-create-section__title">2. Select Payment Type</h3>
-        <div className="pm-payment-type-grid">
-          {PAYMENT_TYPES.map((type) => (
-            <label
-              key={type.value}
-              className={`pm-payment-type-card ${paymentType === type.value ? "pm-payment-type-card--selected" : ""}`}
-            >
-              <input
-                type="radio"
-                name="paymentType"
-                checked={paymentType === type.value}
-                onChange={() => setPaymentType(type.value)}
-              />
-              <div className="pm-payment-type-card__content">
-                <span className="pm-payment-type-card__label">{type.label}</span>
-                <span className="pm-payment-type-card__desc">{type.description}</span>
+          {/* ── Payment Type ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Payment Type</h3>
+            </div>
+            <div className="pm-form-section__body">
+              <div className="pm-payment-type-grid">
+                {PAYMENT_TYPES.map((type) => (
+                  <label
+                    key={type.value}
+                    className={`pm-payment-type-card ${paymentType === type.value ? "pm-payment-type-card--selected" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      checked={paymentType === type.value}
+                      onChange={() => setPaymentType(type.value)}
+                    />
+                    <div className="pm-payment-type-card__content">
+                      <span className="pm-payment-type-card__label">{type.label}</span>
+                      <span className="pm-payment-type-card__desc">{type.description}</span>
+                    </div>
+                  </label>
+                ))}
               </div>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Step 3: Select Fees */}
-      <div className="pm-create-section">
-        <h3 className="pm-create-section__title">3. Select Fees</h3>
-        <SubjectSelection
-          subjects={subjects}
-          courses={courses}
-          selectedSubjectIds={selectedSubjectIds}
-          selectedCourseIds={selectedCourseIds}
-          onToggleSubject={handleToggleSubject}
-          onToggleCourse={handleToggleCourse}
-        />
-        <ApplicableOtherFees
-          fees={otherFees}
-          selectedCodes={selectedOtherFeeCodes}
-          onToggle={handleToggleOtherFee}
-        />
-      </div>
-
-      {/* Step 4: Configure Installments */}
-      {hasFeeSelection && (
-        <div className="pm-create-section">
-          <h3 className="pm-create-section__title">4. Configure Installments</h3>
-          <InstallmentConfiguration
-            installments={installments}
-            totalPayable={totalPayable}
-            onChange={setInstallments}
-            paymentType={paymentType}
-          />
-        </div>
-      )}
-
-      {/* Step 5: Review & Save */}
-      {hasFeeSelection && (
-        <div className="pm-create-section">
-          <h3 className="pm-create-section__title">5. Review & Save</h3>
-          <PaymentSummaryPanel
-            feeLines={feeLines}
-            installments={installments}
-            globalDiscount={globalDiscount}
-          />
-          <div className="pm-form-group" style={{ marginTop: "1rem" }}>
-            <label className="pm-label">Remarks</label>
-            <textarea
-              className="pm-textarea"
-              rows={2}
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Optional remarks for this schedule..."
-            />
+            </div>
           </div>
-          <div className="pm-create-actions">
+
+          {/* ── Course / Subject Fees ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Course / Subject Fees</h3>
+            </div>
+            <div className="pm-form-section__body">
+              <SubjectSelection
+                subjects={subjects}
+                courses={courses}
+                selectedSubjectIds={selectedSubjectIds}
+                selectedCourseIds={selectedCourseIds}
+                onToggleSubject={handleToggleSubject}
+                onToggleCourse={handleToggleCourse}
+              />
+            </div>
+          </div>
+
+          {/* ── Other Fees ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Other Fees</h3>
+            </div>
+            <div className="pm-form-section__body">
+              <ApplicableOtherFees
+                fees={otherFees}
+                selectedCodes={selectedOtherFeeCodes}
+                onToggle={handleToggleOtherFee}
+              />
+            </div>
+          </div>
+
+          {/* ── Discount ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Discount</h3>
+            </div>
+            <div className="pm-form-section__body">
+              <div className="pm-form-row">
+                <div className="pm-form-group">
+                  <label className="pm-label">Global Discount Amount</label>
+                  <input
+                    type="number"
+                    className="pm-input"
+                    step="0.01"
+                    min="0"
+                    value={globalDiscount}
+                    onChange={(e) => setGlobalDiscount(parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="pm-form-group">
+                  <label className="pm-label">Total After Discount</label>
+                  <input
+                    type="text"
+                    className="pm-input pm-input--readonly"
+                    readOnly
+                    value={formatCurrency(round2(totalPayable - globalDiscount))}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Installment Configuration (includes adjustment options) ── */}
+          {hasFeeSelection && (
+            <div className="pm-card pm-form-section">
+              <div className="pm-form-section__header">
+                <h3 className="pm-form-section__title">Installment Configuration</h3>
+              </div>
+              <div className="pm-form-section__body">
+                <InstallmentConfiguration
+                  installments={installments}
+                  totalPayable={totalPayable}
+                  onChange={setInstallments}
+                  paymentType={paymentType}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── Remarks ── */}
+          <div className="pm-card pm-form-section">
+            <div className="pm-form-section__header">
+              <h3 className="pm-form-section__title">Remarks</h3>
+            </div>
+            <div className="pm-form-section__body">
+              <textarea
+                className="pm-textarea"
+                rows={2}
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Optional remarks for this schedule..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Right Column: Payment Summary Sidebar ──────────────────── */}
+        <div className="pm-create-layout__sidebar">
+          {hasFeeSelection ? (
+            <PaymentSummaryPanel
+              feeLines={feeLines}
+              installments={installments}
+              globalDiscount={globalDiscount}
+            />
+          ) : (
+            <div className="pm-card pm-summary-panel">
+              <h4 className="pm-summary-panel__title">Payment Summary</h4>
+              <div className="pm-summary-panel__status">
+                <span className="pm-text-muted pm-text-sm">
+                  Select courses, subjects, or other fees to see the payment summary.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Save / Cancel actions in sidebar */}
+          <div className="pm-create-layout__actions">
             <button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>
               Cancel
             </button>
@@ -400,14 +472,14 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
               type="button"
               className="pm-btn pm-btn--primary"
               onClick={handleSave}
-              disabled={saving || !student}
+              disabled={saving || !student || !hasFeeSelection}
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : "Create Schedule"}
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       <SubjectSelectionDialog
         open={showStudentDialog}
