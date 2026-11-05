@@ -1,8 +1,8 @@
-// ─── Modify Receipt Dialog ─────────────────────────────────────────────────────
+// ─── Modify Receipt Dialog (XD Screen 12) ──────────────────────────────────────
+// Edits receipt metadata. Displays Student Name and Receipt Date (read-only).
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { PaymentReceipt } from "../paymentTypes";
-import { PAYMENT_METHODS } from "../paymentConstants";
 import { formatCurrency } from "../paymentCalculations";
 
 interface ModifyReceiptDialogProps {
@@ -64,8 +64,20 @@ export const ModifyReceiptDialog: React.FC<ModifyReceiptDialogProps> = ({
         <div className="pm-dialog__body">
           <div className="pm-dialog__info-grid">
             <div className="pm-dialog__info-item">
+              <span className="pm-label">Student Name</span>
+              <span className="pm-text-semibold">{receipt.studentName || "-"}</span>
+            </div>
+            <div className="pm-dialog__info-item">
               <span className="pm-label">Receipt No.</span>
               <span className="pm-text-semibold">{receipt.receiptNo}</span>
+            </div>
+            <div className="pm-dialog__info-item">
+              <span className="pm-label">Receipt Date</span>
+              <span className="pm-text-semibold">{receipt.receiptDate || receipt.payDate}</span>
+            </div>
+            <div className="pm-dialog__info-item">
+              <span className="pm-label">Installment</span>
+              <span className="pm-text-semibold">{receipt.installmentName || "-"}</span>
             </div>
             <div className="pm-dialog__info-item">
               <span className="pm-label">Amount</span>
@@ -78,6 +90,10 @@ export const ModifyReceiptDialog: React.FC<ModifyReceiptDialogProps> = ({
             <div className="pm-dialog__info-item">
               <span className="pm-label">Pay Date</span>
               <span className="pm-text-semibold">{receipt.payDate}</span>
+            </div>
+            <div className="pm-dialog__info-item">
+              <span className="pm-label">Collected By</span>
+              <span className="pm-text-semibold">{receipt.collectedBy || "-"}</span>
             </div>
           </div>
 

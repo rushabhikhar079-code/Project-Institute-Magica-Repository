@@ -1,7 +1,8 @@
-// ─── Payment History Page ──────────────────────────────────────────────────────
-// Shows all receipts/collections across all schedules, with filtering.
+// ─── Payment History Page (XD Screen 5) ──────────────────────────────────────
+// Shows all receipts/collections across all schedules, with filtering by
+// date range, receipt number, reference number, payment method, and remarks.
 import React, { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, Search } from "lucide-react";
 import type { PaymentSchedule, PaymentReceipt } from "../paymentTypes";
 import { getSchedulesMock, getReceiptsByScheduleMock, updateReceiptMock } from "../paymentService";
 import { formatCurrency, round2 } from "../paymentCalculations";
@@ -16,7 +17,14 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
   const [allReceipts, setAllReceipts] = useState<{ receipt: PaymentReceipt; schedule: PaymentSchedule }[]>([]);
   const [loading, setLoading] = useState(true);
   const [modifyReceipt, setModifyReceipt] = useState<PaymentReceipt | null>(null);
+
+  // Filters
   const [filterMethod, setFilterMethod] = useState<string>("");
+  const [filterReceiptNo, setFilterReceiptNo] = useState<string>("");
+  const [filterReferenceNo, setFilterReferenceNo] = useState<string>("");
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [filterStudentName, setFilterStudentName] = useState<string>("");
 
   const fetchAllReceipts = useCallback(async () => {
     setLoading(true);
@@ -58,9 +66,54 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
     fetchAllReceipts();
   };
 
-  const filteredReceipts = filterMethod
-    ? allReceipts.filter((r) => r.receipt.paymentMethod === filterMethod)
-    : allReceipts;
+  const handleResetFilters = () => {
+    setFilterMethod("");
+    setFilterReceiptNo("");
+    setFilterReferenceNo("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterStudentName("");
+  };
+
+  // Parse dd/MM/yyyy to a comparable date string
+  const parseDate = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("/");
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+    }
+    return dateStr;
+  };
+
+  const filteredReceipts = allReceipts.filter(({ receipt, schedule }) => {
+    if (filterMethod && receipt.paymentMethod !== filterMethod) return false;
+    if (filterReceiptNo) {
+      const matchReceipt =
+        receipt.receiptNo.toLowerCase().includes(filterReceiptNo.toLowerCase()) ||
+        receipt.manualReceiptNo.toLowerCase().includes(filterReceiptNo.toLowerCase());
+      if (!matchReceipt) return false;
+    }
+    if (filterReferenceNo) {
+      const matchRef =
+        receipt.chequeNo.toLowerCase().includes(filterReferenceNo.toLowerCase()) ||
+        receipt.bank.toLowerCase().includes(filterReferenceNo.toLowerCase());
+      if (!matchRef) return false;
+    }
+    if (filterStudentName) {
+      if (!schedule.studentName.toLowerCase().includes(filterStudentName.toLowerCase())) return false;
+    }
+    if (filterDateFrom) {
+      const receiptDate = parseDate(receipt.payDate);
+      const fromDate = filterDateFrom;
+      if (receiptDate < fromDate) return false;
+    }
+    if (filterDateTo) {
+      const receiptDate = parseDate(receipt.payDate);
+      const toDate = filterDateTo;
+      if (receiptDate > toDate) return false;
+    }
+    return true;
+  });
 
   const totalCollected = round2(filteredReceipts.reduce((s, r) => s + r.receipt.amount, 0));
 
@@ -94,28 +147,86 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
       </div>
 
       <div className="pm-card pm-filter-bar">
-        <div className="pm-form-group" style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
-          <label className="pm-label" style={{ margin: 0 }}>Filter by Method:</label>
-          <select
-            className="pm-select"
-            value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value)}
-          >
-            <option value="">All Methods</option>
-            <option value="Cash">Cash</option>
-            <option value="Cheque">Cheque</option>
-            <option value="UPI">UPI</option>
-            <option value="Card">Card</option>
-            <option value="BankTransfer">Bank Transfer</option>
-            <option value="Online">Online</option>
-          </select>
+        <div className="pm-filter-bar__row">
+          <div className="pm-form-group">
+            <label className="pm-label">Student Name</label>
+            <input
+              type="text"
+              className="pm-input"
+              placeholder="Search student..."
+              value={filterStudentName}
+              onChange={(e) => setFilterStudentName(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group">
+            <label className="pm-label">Receipt No.</label>
+            <input
+              type="text"
+              className="pm-input"
+              placeholder="Search receipt no..."
+              value={filterReceiptNo}
+              onChange={(e) => setFilterReceiptNo(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group">
+            <label className="pm-label">Reference No.</label>
+            <input
+              type="text"
+              className="pm-input"
+              placeholder="Cheque no / bank ref..."
+              value={filterReferenceNo}
+              onChange={(e) => setFilterReferenceNo(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group">
+            <label className="pm-label">Payment Method</label>
+            <select
+              className="pm-select"
+              value={filterMethod}
+              onChange={(e) => setFilterMethod(e.target.value)}
+            >
+              <option value="">All Methods</option>
+              <option value="Cash">Cash</option>
+              <option value="Cheque">Cheque</option>
+              <option value="UPI">UPI</option>
+              <option value="Card">Card</option>
+              <option value="BankTransfer">Bank Transfer</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
+        </div>
+        <div className="pm-filter-bar__row">
+          <div className="pm-form-group">
+            <label className="pm-label">Date From</label>
+            <input
+              type="date"
+              className="pm-input"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group">
+            <label className="pm-label">Date To</label>
+            <input
+              type="date"
+              className="pm-input"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group pm-filter-bar__actions">
+            <button type="button" className="pm-btn pm-btn--ghost" onClick={handleResetFilters}>
+              <Search className="w-4 h-4" />
+              Reset Filters
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="pm-card pm-data-table-card">
         {filteredReceipts.length === 0 ? (
           <div className="pm-empty-state">
-            <p className="pm-empty-state__text">No payment receipts found.</p>
+            <p className="pm-empty-state__text">No payment receipts found matching the filters.</p>
           </div>
         ) : (
           <table className="pm-table">
@@ -124,10 +235,13 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
                 <th>Student</th>
                 <th>Reg. No.</th>
                 <th>Receipt No.</th>
+                <th>Installment</th>
                 <th>Method</th>
                 <th className="pm-text-right">Amount</th>
                 <th>Pay Date</th>
+                <th>Receipt Date</th>
                 <th>Bank</th>
+                <th>Remarks</th>
                 <th>Collected By</th>
                 <th style={{ width: "80px" }}>Actions</th>
               </tr>
@@ -135,15 +249,18 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
             <tbody>
               {filteredReceipts.map(({ receipt, schedule }) => (
                 <tr key={receipt.id}>
-                  <td className="pm-text-semibold">{schedule.studentName}</td>
+                  <td className="pm-text-semibold">{receipt.studentName || schedule.studentName}</td>
                   <td>{schedule.studentRegNo}</td>
                   <td>{receipt.manualReceiptNo || receipt.receiptNo}</td>
+                  <td>{receipt.installmentName || "-"}</td>
                   <td>{receipt.paymentMethod}</td>
                   <td className="pm-text-right pm-text-success pm-text-semibold">
                     {formatCurrency(receipt.amount)}
                   </td>
                   <td>{receipt.payDate}</td>
+                  <td>{receipt.receiptDate || "-"}</td>
                   <td>{receipt.bank || "-"}</td>
+                  <td>{receipt.remarks || "-"}</td>
                   <td>{receipt.collectedBy || "-"}</td>
                   <td>
                     <button

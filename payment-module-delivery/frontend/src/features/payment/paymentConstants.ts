@@ -96,6 +96,7 @@ export const PAYMENT_ROUTES = {
   CREATE_SCHEDULE: "payment/create-schedule",
   PAYMENT_RECORDING: "payment/record-payment",
   PAYMENT_HISTORY: "payment/history",
+  EDIT_INSTALLMENTS: "payment/edit-installments",
 } as const;
 
 // ─── Page Size Options ─────────────────────────────────────────────────────────

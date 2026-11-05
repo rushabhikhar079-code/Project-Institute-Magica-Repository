@@ -197,6 +197,7 @@ export const adjustInNewInstallment = (
   const newInstallment: Installment = {
     id: `inst-${Date.now()}`,
     installmentNo: newNo,
+    installmentName: `Installment ${newNo}`,
     dueDate,
     basicAmount: round2(difference),
     discountAmount: 0,
@@ -205,6 +206,7 @@ export const adjustInNewInstallment = (
     netAmount: round2(difference),
     paidAmount: 0,
     outstandingAmount: round2(difference),
+    outstandingWithoutTax: round2(difference),
     status: "Pending",
     remarks: "",
   };
@@ -243,6 +245,9 @@ export const calculateScheduleTotals = (schedule: PaymentSchedule): PaymentSched
     schedule.installments.reduce((sum, inst) => sum + inst.paidAmount, 0),
   );
   const totalOutstanding = round2(totalPayable - totalPaid);
+  const totalOutstandingWithoutTax = round2(
+    schedule.feeLines.reduce((s, l) => s + l.basicAmount - l.discountAmount, 0) - totalPaid,
+  );
   const totalDiscount = round2(
     schedule.feeLines.reduce((sum, line) => sum + line.discountAmount, 0),
   );
@@ -258,6 +263,7 @@ export const calculateScheduleTotals = (schedule: PaymentSchedule): PaymentSched
     totalPayable,
     totalPaid,
     totalOutstanding,
+    totalOutstandingWithoutTax,
     totalDiscount,
     totalTax,
     totalNetAmount,
@@ -273,6 +279,9 @@ export const calculateAdhocRemainingBalance = (schedule: PaymentSchedule): numbe
 // ─── Installment Outstanding ───────────────────────────────────────────────────
 export const calculateInstallmentOutstanding = (inst: Installment): Installment => {
   const outstanding = round2(inst.netAmount - inst.paidAmount);
+  const outstandingWithoutTax = round2(
+    round2(inst.basicAmount - inst.discountAmount) - inst.paidAmount,
+  );
   let status = inst.status;
 
   if (outstanding <= 0 && inst.paidAmount > 0) {
@@ -280,13 +289,13 @@ export const calculateInstallmentOutstanding = (inst: Installment): Installment 
   } else if (inst.paidAmount > 0 && outstanding > 0) {
     status = "PartiallyPaid";
   } else if (outstanding > 0 && inst.paidAmount === 0) {
-    // Keep existing status (Pending or Overdue) — don't override
     if (status !== "Cancelled") status = status === "Overdue" ? "Overdue" : "Pending";
   }
 
   return {
     ...inst,
     outstandingAmount: outstanding,
+    outstandingWithoutTax,
     status,
   };
 };

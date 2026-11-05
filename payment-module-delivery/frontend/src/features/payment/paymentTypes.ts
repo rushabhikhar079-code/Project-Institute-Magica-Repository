@@ -49,6 +49,7 @@ export interface FeeLine {
 export interface Installment {
   id: string;
   installmentNo: number; // Installment_No
+  installmentName: string; // Display label (e.g. "Installment 1", "Adhoc-1")
   dueDate: string; // Installment_Date (dd/MM/yyyy)
   basicAmount: number; // Basic_Amt
   discountAmount: number; // Disc_Amt
@@ -57,6 +58,7 @@ export interface Installment {
   netAmount: number; // (Basic_Amt - Disc_Amt) + Tax_Amt
   paidAmount: number; // sum of received amounts
   outstandingAmount: number; // netAmount - paidAmount
+  outstandingWithoutTax: number; // (basicAmount - discountAmount) - paidAmount
   status: InstallmentStatus;
   remarks: string; // Remarks
   receiptNo?: string; // Receipt_No from installments_received
@@ -69,9 +71,12 @@ export interface PaymentReceipt {
   receiptNo: string;
   manualReceiptNo: string;
   installmentId: string;
+  installmentName: string; // Display label of the installment this receipt belongs to
+  studentName: string; // Student name shown on receipt details
   paymentMethod: PaymentMethod;
   amount: number;
   payDate: string; // Pay_Date (dd/MM/yyyy)
+  receiptDate: string; // Receipt_Date (dd/MM/yyyy) — date the receipt was generated
   chequeNo: string; // Cheque_No
   chequeDate: string; // Cheque_Date
   bank: string; // Bank
@@ -86,9 +91,12 @@ export interface PaymentSchedule {
   studentId: string; // Stud_Id (RegNo)
   studentName: string;
   studentRegNo: string;
-  studentMobile: string;
+  studentMobile: string; // Contact number
   studentEmail: string;
   branchId: number;
+  curriculum: string; // Curriculum / board name (e.g. "CBSE")
+  courseName: string; // Course name (e.g. "JEE Main Full Course")
+  subjectNames: string; // Comma-separated subject names
   paymentType: PaymentType;
   status: ScheduleStatus;
   feeLines: FeeLine[];
@@ -96,6 +104,7 @@ export interface PaymentSchedule {
   totalPayable: number; // sum of fee line net amounts
   totalPaid: number;
   totalOutstanding: number;
+  totalOutstandingWithoutTax: number; // outstanding excluding tax component
   totalDiscount: number;
   totalTax: number;
   totalNetAmount: number;
@@ -130,6 +139,7 @@ export interface StudentSearchResult {
   BranchId: number;
   CourseNames: string;
   SubjectNames: string;
+  Curriculum: string; // Board / curriculum name
 }
 
 export interface StudentSearchResponse {
@@ -221,6 +231,7 @@ export interface PaymentRecordingForm {
   amountReceived: number;
   paymentMethod: PaymentMethod;
   payDate: string;
+  receiptDate: string; // Date the receipt is generated
   receiptNo: string;
   manualReceiptNo: string;
   chequeNo: string;
@@ -228,6 +239,34 @@ export interface PaymentRecordingForm {
   bank: string;
   branchAddr: string;
   remarks: string;
+  sendNotification: boolean; // Send receipt notification (email/whatsapp)
+  sendPaymentLink: boolean; // Send a payment link for remaining balance
+}
+
+// ─── Edit Schedule Form (Screen 10: Edit Schedule dialog) ──────────────────────
+export interface EditScheduleForm {
+  scheduleId: string;
+  changeDate: boolean;
+  newDueDate: string;
+  changeDiscount: boolean;
+  newDiscount: number;
+  changePayable: boolean;
+  newTotalPayable: number;
+  settleDifferenceOption: AdjustmentOption;
+  remarks: string;
+}
+
+// ─── Payment History Filter (Screen 5) ─────────────────────────────────────────
+export interface PaymentHistoryFilter {
+  studentName: string;
+  receiptNo: string;
+  referenceNo: string;
+  paymentMethod: PaymentMethod | "";
+  dateFrom: string;
+  dateTo: string;
+  branchId: number;
+  pageNumber: number;
+  pageSize: number;
 }
 
 // ─── API Response wrapper (matches existing ApiResponse<T>) ────────────────────

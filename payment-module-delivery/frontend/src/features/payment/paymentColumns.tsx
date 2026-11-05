@@ -2,7 +2,7 @@
 // Follows existing project pattern from features/students/admission/columns.tsx.
 // Uses TableColumn type from components/common/DataTable.
 
-import { Edit, Eye, Trash2, Send, Plus } from "lucide-react";
+import { Edit, Eye, Trash2, Send, Plus, Calendar, CreditCard } from "lucide-react";
 import type { TableColumn } from "../../../../components/common/DataTable";
 import type { PaymentSchedule, PaymentReceipt, Installment } from "./paymentTypes";
 import { formatCurrency } from "./paymentCalculations";
@@ -25,6 +25,8 @@ export interface ScheduleColumnProps {
   onRecordPayment: (schedule: PaymentSchedule) => void;
   onSendLink: (schedule: PaymentSchedule) => void;
   onCancel: (schedule: PaymentSchedule) => void;
+  onSchedule: (schedule: PaymentSchedule) => void;
+  onPay: (schedule: PaymentSchedule) => void;
 }
 
 export const getScheduleColumns = ({
@@ -33,11 +35,13 @@ export const getScheduleColumns = ({
   onRecordPayment,
   onSendLink,
   onCancel,
+  onSchedule,
+  onPay,
 }: ScheduleColumnProps): TableColumn<PaymentSchedule>[] => [
   {
     key: "actions",
     header: "Actions",
-    width: "180px",
+    width: "220px",
     align: "center",
     sortable: false,
     render: (schedule: PaymentSchedule) => (
@@ -60,6 +64,26 @@ export const getScheduleColumns = ({
           disabled={schedule.status === "Completed" || schedule.status === "Cancelled"}
         >
           <Edit className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onSchedule(schedule); }}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: BRAND_COLOR }}
+          title="Edit Installments"
+          disabled={schedule.status === "Cancelled"}
+        >
+          <Calendar className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onPay(schedule); }}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: BRAND_COLOR }}
+          title="Pay"
+          disabled={schedule.status === "Cancelled"}
+        >
+          <CreditCard className="w-4 h-4" />
         </button>
         <button
           type="button"
@@ -105,6 +129,31 @@ export const getScheduleColumns = ({
     sortable: true,
     sortKey: "studentRegNo",
     render: (schedule: PaymentSchedule) => schedule.studentRegNo || "-",
+  },
+  {
+    key: "studentMobile",
+    header: "Contact",
+    sortable: false,
+    render: (schedule: PaymentSchedule) => schedule.studentMobile || "-",
+  },
+  {
+    key: "curriculum",
+    header: "Curriculum",
+    sortable: false,
+    render: (schedule: PaymentSchedule) => schedule.curriculum || "-",
+  },
+  {
+    key: "courseName",
+    header: "Course",
+    sortable: true,
+    sortKey: "courseName",
+    render: (schedule: PaymentSchedule) => schedule.courseName || "-",
+  },
+  {
+    key: "subjectNames",
+    header: "Subject(s)",
+    sortable: false,
+    render: (schedule: PaymentSchedule) => schedule.subjectNames || "-",
   },
   {
     key: "paymentType",
@@ -188,6 +237,12 @@ export const getInstallmentColumns = ({
     render: (inst: Installment) => inst.installmentNo,
   },
   {
+    key: "installmentName",
+    header: "Name",
+    sortable: false,
+    render: (inst: Installment) => inst.installmentName || `Installment ${inst.installmentNo}`,
+  },
+  {
     key: "dueDate",
     header: "Due Date",
     sortable: true,
@@ -245,6 +300,17 @@ export const getInstallmentColumns = ({
     render: (inst: Installment) => (
       <span style={{ color: inst.outstandingAmount > 0 ? "#dc2626" : "#16a34a" }}>
         {formatCurrency(inst.outstandingAmount)}
+      </span>
+    ),
+  },
+  {
+    key: "outstandingWithoutTax",
+    header: "Outstanding (excl. Tax)",
+    align: "right",
+    sortable: false,
+    render: (inst: Installment) => (
+      <span style={{ color: inst.outstandingWithoutTax > 0 ? "#dc2626" : "#16a34a" }}>
+        {formatCurrency(inst.outstandingWithoutTax)}
       </span>
     ),
   },
@@ -318,6 +384,19 @@ export const getReceiptColumns = ({
     render: (r: PaymentReceipt) => r.manualReceiptNo || r.receiptNo,
   },
   {
+    key: "studentName",
+    header: "Student Name",
+    sortable: true,
+    sortKey: "studentName",
+    render: (r: PaymentReceipt) => r.studentName || "-",
+  },
+  {
+    key: "installmentName",
+    header: "Installment",
+    sortable: false,
+    render: (r: PaymentReceipt) => r.installmentName || "-",
+  },
+  {
     key: "paymentMethod",
     header: "Method",
     sortable: true,
@@ -340,10 +419,23 @@ export const getReceiptColumns = ({
     render: (r: PaymentReceipt) => r.payDate || "-",
   },
   {
+    key: "receiptDate",
+    header: "Receipt Date",
+    sortable: true,
+    sortKey: "receiptDate",
+    render: (r: PaymentReceipt) => r.receiptDate || "-",
+  },
+  {
     key: "bank",
     header: "Bank",
     sortable: false,
     render: (r: PaymentReceipt) => r.bank || "-",
+  },
+  {
+    key: "remarks",
+    header: "Remarks",
+    sortable: false,
+    render: (r: PaymentReceipt) => r.remarks || "-",
   },
   {
     key: "collectedBy",

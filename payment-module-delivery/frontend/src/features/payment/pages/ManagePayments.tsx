@@ -75,6 +75,14 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     onNavigate("payment/create-schedule", { scheduleId: schedule.id, mode: "edit" });
   };
 
+  const handleSchedule = (schedule: PaymentSchedule) => {
+    onNavigate("payment/edit-installments", { scheduleId: schedule.id });
+  };
+
+  const handlePay = (schedule: PaymentSchedule) => {
+    onNavigate("payment/record-payment", { scheduleId: schedule.id });
+  };
+
   const handleRecordPayment = (schedule: PaymentSchedule) => {
     onNavigate("payment/record-payment", { scheduleId: schedule.id });
   };
@@ -101,6 +109,8 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     onRecordPayment: handleRecordPayment,
     onSendLink: handleSendLink,
     onCancel: handleCancel,
+    onSchedule: handleSchedule,
+    onPay: handlePay,
   });
 
   return (

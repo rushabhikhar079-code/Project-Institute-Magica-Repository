@@ -6,8 +6,9 @@
 // - Manual due date entry per installment
 // - Adding/removing installments
 // - XD adjustment options
+// - Reset Installments, Save & Pay, Adjustment Amount, Total Payable
 import React, { useState, useCallback } from "react";
-import { Plus, Trash2, Copy, Calendar } from "lucide-react";
+import { Plus, Trash2, RotateCcw, CreditCard, Save } from "lucide-react";
 import type { Installment, AdjustmentOption } from "../paymentTypes";
 import { distributeEqually, round2, formatCurrency } from "../paymentCalculations";
 import { ADJUSTMENT_OPTIONS } from "../paymentConstants";
@@ -17,6 +18,8 @@ interface InstallmentConfigurationProps {
   totalPayable: number;
   onChange: (installments: Installment[]) => void;
   paymentType: "LumpSum" | "Adhoc" | "Installment";
+  onSave?: () => void;
+  onSaveAndPay?: () => void;
 }
 
 export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> = ({
@@ -24,6 +27,8 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
   totalPayable,
   onChange,
   paymentType,
+  onSave,
+  onSaveAndPay,
 }) => {
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [selectedInstallmentIdx, setSelectedInstallmentIdx] = useState<number | null>(null);
@@ -31,9 +36,24 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
   const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
   const [newDueDate, setNewDueDate] = useState<string>("");
 
-  const isCustomInstallment = paymentType === "Installment";
   const isLumpSum = paymentType === "LumpSum";
   const isAdhoc = paymentType === "Adhoc";
+
+  // ─── Reset Installments ────────────────────────────────────────────────
+  const handleReset = useCallback(() => {
+    const count = installments.length;
+    if (count === 0) return;
+    const amounts = distributeEqually(totalPayable, count);
+    const updated = installments.map((inst, idx) => ({
+      ...inst,
+      basicAmount: amounts[idx],
+      discountAmount: 0,
+      netAmount: amounts[idx],
+      outstandingAmount: amounts[idx],
+      outstandingWithoutTax: amounts[idx],
+    }));
+    onChange(updated);
+  }, [installments, totalPayable, onChange]);
 
   // ─── Equal Distribution ───────────────────────────────────────────────────
   const handleDistributeEqually = useCallback(() => {
@@ -56,6 +76,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
     const newInstallment: Installment = {
       id: `inst-${Date.now()}`,
       installmentNo: newNo,
+      installmentName: `Installment ${newNo}`,
       dueDate: "",
       basicAmount: 0,
       discountAmount: 0,
@@ -64,6 +85,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
       netAmount: 0,
       paidAmount: 0,
       outstandingAmount: 0,
+      outstandingWithoutTax: 0,
       status: "Pending",
       remarks: "",
     };
@@ -90,7 +112,6 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
       const updated = installments.map((inst) => {
         if (inst.id !== id) return inst;
         const updatedInst = { ...inst, [field]: value };
-        // Recalculate net when basic or discount changes
         if (field === "basicAmount" || field === "discountAmount") {
           updatedInst.netAmount = round2(
             round2(updatedInst.basicAmount - updatedInst.discountAmount) + updatedInst.taxAmount,
@@ -152,6 +173,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
         const newInst: Installment = {
           id: `inst-${Date.now()}`,
           installmentNo: updated.length + 1,
+          installmentName: `Installment ${updated.length + 1}`,
           dueDate: newDueDate || "",
           basicAmount: diff,
           discountAmount: 0,
@@ -160,6 +182,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
           netAmount: diff,
           paidAmount: 0,
           outstandingAmount: diff,
+          outstandingWithoutTax: diff,
           status: "Pending",
           remarks: "Inserted via adjustment",
         };
@@ -168,7 +191,6 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
       }
     }
 
-    // Renumber
     const renumbered = updated.map((inst, idx) => ({ ...inst, installmentNo: idx + 1 }));
     onChange(renumbered);
     setShowAdjustment(false);
@@ -241,6 +263,15 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
         </button>
         <button
           type="button"
+          className="pm-btn pm-btn--ghost"
+          onClick={handleReset}
+          title="Reset to equal distribution"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Reset Installments
+        </button>
+        <button
+          type="button"
           className="pm-btn pm-btn--secondary"
           onClick={handleAddInstallment}
         >
@@ -248,8 +279,10 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
           Add Installment
         </button>
         <div className="pm-installment-config__summary">
+          <span className="pm-installment-config__total-label">Total Payable:</span>
+          <span className="pm-installment-config__total-value">{formatCurrency(totalPayable)}</span>
           <span className={`pm-installment-config__total ${sumMatch ? "pm-text-success" : "pm-text-danger"}`}>
-            Sum: {formatCurrency(sumNet)} / {formatCurrency(totalPayable)}
+            Sum: {formatCurrency(sumNet)}
           </span>
           {sumMatch ? (
             <span className="pm-text-success pm-text-sm">Reconciled</span>
@@ -274,7 +307,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
             </tr>
           </thead>
           <tbody>
-            {installments.map((inst, idx) => (
+            {installments.map((inst) => (
               <tr key={inst.id}>
                 <td className="pm-text-center">{inst.installmentNo}</td>
                 <td>
@@ -377,7 +410,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
                 </select>
               </div>
               <div className="pm-form-group">
-                <label className="pm-label">Amount</label>
+                <label className="pm-label">Adjustment Amount</label>
                 <input
                   type="number"
                   className="pm-input"
@@ -414,6 +447,24 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
           </div>
         )}
       </div>
+
+      {/* Save & Save & Pay Actions */}
+      {(onSave || onSaveAndPay) && (
+        <div className="pm-installment-config__save-actions">
+          {onSave && (
+            <button type="button" className="pm-btn pm-btn--primary" onClick={onSave}>
+              <Save className="w-4 h-4" />
+              Save
+            </button>
+          )}
+          {onSaveAndPay && (
+            <button type="button" className="pm-btn pm-btn--primary" onClick={onSaveAndPay}>
+              <CreditCard className="w-4 h-4" />
+              Save & Pay
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -25,8 +25,20 @@ export const StudentPaymentSummary: React.FC<StudentPaymentSummaryProps> = ({ sc
           <span className="pm-student-summary__value">{schedule.studentRegNo}</span>
         </div>
         <div className="pm-student-summary__field">
-          <span className="pm-student-summary__label">Mobile</span>
+          <span className="pm-student-summary__label">Contact</span>
           <span className="pm-student-summary__value">{schedule.studentMobile || "-"}</span>
+        </div>
+        <div className="pm-student-summary__field">
+          <span className="pm-student-summary__label">Curriculum</span>
+          <span className="pm-student-summary__value">{schedule.curriculum || "-"}</span>
+        </div>
+        <div className="pm-student-summary__field">
+          <span className="pm-student-summary__label">Course</span>
+          <span className="pm-student-summary__value">{schedule.courseName || "-"}</span>
+        </div>
+        <div className="pm-student-summary__field">
+          <span className="pm-student-summary__label">Subject(s)</span>
+          <span className="pm-student-summary__value">{schedule.subjectNames || "-"}</span>
         </div>
         <div className="pm-student-summary__field">
           <span className="pm-student-summary__label">Payment Type</span>
@@ -95,6 +107,12 @@ export const StudentPaymentSummary: React.FC<StudentPaymentSummaryProps> = ({ sc
           <span className="pm-total-box__label">Outstanding</span>
           <span className="pm-total-box__value pm-text-danger">
             {formatCurrency(schedule.totalOutstanding)}
+          </span>
+        </div>
+        <div className="pm-total-box">
+          <span className="pm-total-box__label">Outstanding (excl. Tax)</span>
+          <span className="pm-total-box__value pm-text-danger">
+            {formatCurrency(schedule.totalOutstandingWithoutTax)}
           </span>
         </div>
       </div>

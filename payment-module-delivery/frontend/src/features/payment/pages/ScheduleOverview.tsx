@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Edit, Send } from "lucide-react";
 import type { PaymentSchedule, Installment, PaymentReceipt } from "../paymentTypes";
-import { getScheduleByIdMock, getReceiptsByScheduleMock, updateInstallmentMock, updateScheduleMock } from "../paymentService";
+import { getScheduleByIdMock, getReceiptsByScheduleMock, updateInstallmentMock, updateScheduleMock, updateReceiptMock } from "../paymentService";
 import { StudentPaymentSummary } from "../components/StudentPaymentSummary";
 import { ScheduleTable } from "../components/ScheduleTable";
 import { EditInstallmentDialog } from "../dialogs/EditInstallmentDialog";
@@ -67,8 +67,6 @@ export const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({
 
   const handleModifyReceiptSave = async (updates: Partial<PaymentReceipt>) => {
     if (!modifyReceipt) return;
-    // NOTE: Mock only — no backend receipt-editing API exists.
-    const { updateReceiptMock } = await import("../paymentService");
     await updateReceiptMock(modifyReceipt.id, updates);
     setModifyReceipt(null);
     fetchData();

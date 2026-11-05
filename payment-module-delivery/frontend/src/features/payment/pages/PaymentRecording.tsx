@@ -1,11 +1,13 @@
-// ─── Payment Recording Page ────────────────────────────────────────────────────
+// ─── Payment Recording Page (XD Screen 6) ──────────────────────────────────────
 // Records a payment collection against an installment.
 // Supports: Cash, Cheque, UPI, Card, Bank Transfer, Online.
 // For Adhoc: after partial collection, remaining balance auto-becomes next installment.
+// XD Screen 6 additions: Edit All Installments, receipt date/number, course fees
+// summary, other fees, send notification, send payment link.
 import React, { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Edit3, Send, Bell } from "lucide-react";
 import type { PaymentSchedule, Installment, PaymentRecordingForm, PaymentMethod } from "../paymentTypes";
-import { getScheduleByIdMock, recordPaymentMock } from "../paymentService";
+import { getScheduleByIdMock, recordPaymentMock, sendPaymentLinkMock } from "../paymentService";
 import { PAYMENT_METHODS } from "../paymentConstants";
 import { formatCurrency, round2 } from "../paymentCalculations";
 import { StudentPaymentSummary } from "../components/StudentPaymentSummary";
@@ -15,6 +17,7 @@ interface PaymentRecordingProps {
   installmentId?: string;
   onBack: () => void;
   onRecorded: (scheduleId: string) => void;
+  onEditInstallments: (scheduleId: string) => void;
 }
 
 export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
@@ -22,6 +25,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   installmentId,
   onBack,
   onRecorded,
+  onEditInstallments,
 }) => {
   const [schedule, setSchedule] = useState<PaymentSchedule | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +38,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   const [amountReceived, setAmountReceived] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
+  const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split("T")[0]);
   const [receiptNo, setReceiptNo] = useState("");
   const [manualReceiptNo, setManualReceiptNo] = useState("");
   const [chequeNo, setChequeNo] = useState("");
@@ -41,6 +46,9 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   const [bank, setBank] = useState("");
   const [branchAddr, setBranchAddr] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [sendNotification, setSendNotification] = useState(false);
+  const [sendPaymentLink, setSendPaymentLink] = useState(false);
+  const [notificationResult, setNotificationResult] = useState<string | null>(null);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -48,7 +56,6 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
       const sch = await getScheduleByIdMock(scheduleId);
       setSchedule(sch);
       if (sch) {
-        // Auto-select installment if provided, or first outstanding
         const target = installmentId
           ? sch.installments.find((i) => i.id === installmentId)
           : sch.installments.find((i) => i.outstandingAmount > 0 && i.status !== "Cancelled");
@@ -77,6 +84,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   const handleSave = async () => {
     setError(null);
     setSuccess(null);
+    setNotificationResult(null);
 
     if (!schedule || !selectedInstallment) {
       setError("Please select an installment.");
@@ -113,6 +121,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
         amountReceived: round2(amountReceived),
         paymentMethod,
         payDate: payDate ? new Date(payDate).toLocaleDateString("en-GB") : "",
+        receiptDate: receiptDate ? new Date(receiptDate).toLocaleDateString("en-GB") : "",
         receiptNo,
         manualReceiptNo,
         chequeNo,
@@ -120,6 +129,8 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
         bank,
         branchAddr,
         remarks,
+        sendNotification,
+        sendPaymentLink,
       };
 
       const result = await recordPaymentMock(form);
@@ -129,12 +140,22 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
           `Payment of ${formatCurrency(amountReceived)} recorded. Remaining balance of ${formatCurrency(result.schedule.totalOutstanding)} has been auto-created as the next Adhoc installment.`,
         );
       } else {
-        setSuccess(`Payment of ${formatCurrency(amountReceived)} recorded successfully.`);
+        setSuccess(`Payment of ${formatCurrency(amountReceived)} recorded successfully. Receipt No: ${result.receipt.receiptNo}`);
       }
 
-      // Refresh schedule
-      await fetchSchedule();
+      // Handle notification / payment link
+      if (sendNotification || sendPaymentLink) {
+        const linkResult = await sendPaymentLinkMock({
+          scheduleId,
+          channel: "Email",
+          recipient: schedule.studentEmail,
+          studentName: schedule.studentName,
+          amount: result.schedule.totalOutstanding,
+        });
+        setNotificationResult(linkResult.message);
+      }
 
+      await fetchSchedule();
       setTimeout(() => onRecorded(scheduleId), 2000);
     } catch {
       setError("Failed to record payment. Please try again.");
@@ -173,6 +194,11 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
     );
   }
 
+  // Separate fee lines by type for summary display
+  const courseFeeLines = schedule.feeLines.filter((l) => l.type === "Course");
+  const subjectFeeLines = schedule.feeLines.filter((l) => l.type === "Subject");
+  const otherFeeLines = schedule.feeLines.filter((l) => l.type === "OtherFee");
+
   return (
     <div className="pm-page">
       <div className="pm-page__header">
@@ -181,12 +207,66 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
           Back
         </button>
         <h1 className="pm-page__title">Record Payment</h1>
+        <button
+          type="button"
+          className="pm-btn pm-btn--secondary"
+          onClick={() => onEditInstallments(scheduleId)}
+          title="Edit All Installments"
+        >
+          <Edit3 className="w-4 h-4" />
+          Edit All Installments
+        </button>
       </div>
 
       {error && <div className="pm-error-banner">{error}</div>}
       {success && <div className="pm-success-banner">{success}</div>}
+      {notificationResult && (
+        <div className="pm-dialog__notice pm-dialog__notice--info">
+          Notification: {notificationResult}
+        </div>
+      )}
 
       <StudentPaymentSummary schedule={schedule} />
+
+      {/* Course/Subject/Other Fees Summary */}
+      <div className="pm-card pm-recording-fees-summary">
+        <h3 className="pm-section__title">Fee Breakdown</h3>
+        <div className="pm-recording-fees-summary__grid">
+          {courseFeeLines.length > 0 && (
+            <div className="pm-recording-fees-summary__group">
+              <h4 className="pm-recording-fees-summary__label">Course Fees</h4>
+              {courseFeeLines.map((l) => (
+                <div key={l.id} className="pm-recording-fees-summary__item">
+                  <span>{l.name}</span>
+                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {subjectFeeLines.length > 0 && (
+            <div className="pm-recording-fees-summary__group">
+              <h4 className="pm-recording-fees-summary__label">Subject Fees</h4>
+              {subjectFeeLines.map((l) => (
+                <div key={l.id} className="pm-recording-fees-summary__item">
+                  <span>{l.name}</span>
+                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {otherFeeLines.length > 0 && (
+            <div className="pm-recording-fees-summary__group">
+              <h4 className="pm-recording-fees-summary__label">Other Fees</h4>
+              {otherFeeLines.map((l) => (
+                <div key={l.id} className="pm-recording-fees-summary__item">
+                  <span>{l.name}</span>
+                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="pm-card pm-recording-form">
         <h3 className="pm-recording-form__title">Payment Details</h3>
@@ -208,7 +288,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
               .filter((i) => i.status !== "Paid" && i.status !== "Cancelled")
               .map((inst) => (
                 <option key={inst.id} value={inst.id}>
-                  #{inst.installmentNo} - Due: {inst.dueDate} - Outstanding: {formatCurrency(inst.outstandingAmount)}
+                  {inst.installmentName || `Installment ${inst.installmentNo}`} - Due: {inst.dueDate} - Outstanding: {formatCurrency(inst.outstandingAmount)}
                 </option>
               ))}
           </select>
@@ -217,8 +297,8 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
         {selectedInstallment && (
           <div className="pm-recording-form__installment-info">
             <div className="pm-recording-form__info-item">
-              <span className="pm-label">Installment No.</span>
-              <span className="pm-text-semibold">#{selectedInstallment.installmentNo}</span>
+              <span className="pm-label">Installment</span>
+              <span className="pm-text-semibold">{selectedInstallment.installmentName || `#${selectedInstallment.installmentNo}`}</span>
             </div>
             <div className="pm-recording-form__info-item">
               <span className="pm-label">Net Amount</span>
@@ -231,6 +311,10 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
             <div className="pm-recording-form__info-item">
               <span className="pm-label">Outstanding</span>
               <span className="pm-text-danger pm-text-semibold">{formatCurrency(selectedInstallment.outstandingAmount)}</span>
+            </div>
+            <div className="pm-recording-form__info-item">
+              <span className="pm-label">Outstanding (excl. Tax)</span>
+              <span className="pm-text-danger pm-text-semibold">{formatCurrency(selectedInstallment.outstandingWithoutTax)}</span>
             </div>
           </div>
         )}
@@ -271,6 +355,28 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
               className="pm-input"
               value={payDate}
               onChange={(e) => setPayDate(e.target.value)}
+            />
+          </div>
+          <div className="pm-form-group">
+            <label className="pm-label">Receipt Date</label>
+            <input
+              type="date"
+              className="pm-input"
+              value={receiptDate}
+              onChange={(e) => setReceiptDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="pm-dialog__form-row">
+          <div className="pm-form-group">
+            <label className="pm-label">Receipt No.</label>
+            <input
+              type="text"
+              className="pm-input"
+              value={receiptNo}
+              onChange={(e) => setReceiptNo(e.target.value)}
+              placeholder="Auto-generated if left blank"
             />
           </div>
           <div className="pm-form-group">
@@ -342,6 +448,28 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
           />
+        </div>
+
+        {/* Notification and Payment Link Options */}
+        <div className="pm-recording-form__notifications">
+          <label className="pm-checkbox-label">
+            <input
+              type="checkbox"
+              checked={sendNotification}
+              onChange={(e) => setSendNotification(e.target.checked)}
+            />
+            <Bell className="w-4 h-4" />
+            Send receipt notification to student
+          </label>
+          <label className="pm-checkbox-label">
+            <input
+              type="checkbox"
+              checked={sendPaymentLink}
+              onChange={(e) => setSendPaymentLink(e.target.checked)}
+            />
+            <Send className="w-4 h-4" />
+            Send payment link for remaining balance
+          </label>
         </div>
 
         {/* Adhoc notice */}

@@ -70,11 +70,23 @@
   gap: var(--pm-spacing-3);
 }
 
+.pm-page__header-actions {
+  display: flex;
+  gap: var(--pm-spacing-2);
+  margin-left: auto;
+}
+
 .pm-page__title {
   font-size: var(--pm-font-size-2xl);
   font-weight: 700;
   color: var(--pm-neutral-900);
   margin: 0;
+}
+
+.pm-page__subtitle {
+  font-size: var(--pm-font-size-sm);
+  color: var(--pm-neutral-500);
+  margin: var(--pm-spacing-1) 0 0 0;
 }
 
 /* ─── Cards ────────────────────────────────────────────────────────────────── */
@@ -375,6 +387,11 @@
   color: var(--pm-brand-dark);
 }
 
+.pm-dialog__notice--warning {
+  background: var(--pm-warning-light);
+  color: #92400e;
+}
+
 /* ─── Banners ──────────────────────────────────────────────────────────────── */
 .pm-error-banner {
   background: var(--pm-danger-light);
@@ -401,6 +418,72 @@
   background: var(--pm-neutral-50);
   border-radius: var(--pm-radius-sm);
   border-left: 3px solid var(--pm-warning);
+}
+
+/* ─── Validation Alert (Screen 8) ─────────────────────────────────────────── */
+.pm-validation-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pm-spacing-3);
+  padding: var(--pm-spacing-3) var(--pm-spacing-4);
+  background: var(--pm-warning-light);
+  border: 1px solid var(--pm-warning);
+  border-radius: var(--pm-radius-md);
+  border-left: 4px solid var(--pm-warning);
+}
+
+.pm-validation-alert__icon {
+  color: var(--pm-warning);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.pm-validation-alert__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.pm-validation-alert__title {
+  font-size: var(--pm-font-size-sm);
+  font-weight: 700;
+  color: #92400e;
+}
+
+.pm-validation-alert__message {
+  font-size: var(--pm-font-size-sm);
+  color: #78350f;
+}
+
+.pm-validation-alert__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--pm-neutral-500);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.pm-validation-alert__close:hover {
+  color: var(--pm-neutral-700);
+}
+
+/* ─── Checkbox Label ───────────────────────────────────────────────────────── */
+.pm-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-spacing-2);
+  font-size: var(--pm-font-size-sm);
+  color: var(--pm-neutral-700);
+  cursor: pointer;
+}
+
+.pm-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--pm-brand);
+  cursor: pointer;
 }
 
 /* ─── Create Schedule Sections ─────────────────────────────────────────────── */
@@ -507,7 +590,7 @@
   justify-content: center;
 }
 
-/* ─── Form Section (replaces pm-create-section) ─────────────────────────────── */
+/* ─── Form Section ──────────────────────────────────────────────────────────── */
 .pm-form-section {
   padding: 0;
   overflow: hidden;
@@ -681,10 +764,30 @@
   font-size: var(--pm-font-size-sm);
 }
 
+.pm-installment-config__total-label {
+  font-size: var(--pm-font-size-sm);
+  font-weight: 600;
+  color: var(--pm-neutral-600);
+}
+
+.pm-installment-config__total-value {
+  font-size: var(--pm-font-size-sm);
+  font-weight: 700;
+  color: var(--pm-brand);
+}
+
 .pm-installment-config__single {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--pm-spacing-4);
+}
+
+.pm-installment-config__save-actions {
+  display: flex;
+  gap: var(--pm-spacing-3);
+  justify-content: flex-end;
+  padding-top: var(--pm-spacing-3);
+  border-top: 1px solid var(--pm-neutral-200);
 }
 
 .pm-adjustment-panel {
@@ -837,6 +940,127 @@
   margin-top: var(--pm-spacing-4);
 }
 
+/* ─── Recording Fees Summary (Screen 6) ───────────────────────────────────── */
+.pm-recording-fees-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-3);
+}
+
+.pm-recording-fees-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--pm-spacing-4);
+}
+
+.pm-recording-fees-summary__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-2);
+}
+
+.pm-recording-fees-summary__label {
+  font-size: var(--pm-font-size-sm);
+  font-weight: 700;
+  color: var(--pm-brand);
+  margin: 0;
+}
+
+.pm-recording-fees-summary__item {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--pm-font-size-sm);
+  color: var(--pm-neutral-700);
+}
+
+/* ─── Recording Notifications (Screen 6) ──────────────────────────────────── */
+.pm-recording-form__notifications {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-2);
+  padding: var(--pm-spacing-3);
+  background: var(--pm-neutral-50);
+  border-radius: var(--pm-radius-md);
+  border: 1px solid var(--pm-neutral-200);
+}
+
+/* ─── Edit Installments Page (Screen 2) ───────────────────────────────────── */
+.pm-edit-installments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-4);
+}
+
+.pm-edit-installments__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pm-spacing-3);
+  flex-wrap: wrap;
+}
+
+.pm-edit-installments__actions {
+  display: flex;
+  gap: var(--pm-spacing-2);
+}
+
+.pm-edit-installments__table {
+  overflow-x: auto;
+}
+
+.pm-edit-installments__table .pm-table input.pm-input--sm {
+  width: 100%;
+  min-width: 80px;
+}
+
+.pm-row--locked {
+  background: var(--pm-neutral-50);
+  opacity: 0.7;
+}
+
+.pm-row--locked input {
+  background: var(--pm-neutral-100);
+  cursor: not-allowed;
+}
+
+.pm-edit-installments__footer {
+  display: flex;
+  gap: var(--pm-spacing-3);
+  justify-content: flex-end;
+  padding-top: var(--pm-spacing-3);
+  border-top: 1px solid var(--pm-neutral-200);
+}
+
+/* ─── Edit Schedule Dialog Sections (Screen 10) ───────────────────────────── */
+.pm-edit-schedule__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-spacing-2);
+  padding: var(--pm-spacing-3);
+  background: var(--pm-neutral-50);
+  border-radius: var(--pm-radius-md);
+  border: 1px solid var(--pm-neutral-200);
+  margin-bottom: var(--pm-spacing-3);
+}
+
+.pm-edit-schedule__difference {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-spacing-2);
+  font-size: var(--pm-font-size-sm);
+  padding: var(--pm-spacing-2) var(--pm-spacing-3);
+  background: var(--pm-warning-light);
+  border-radius: var(--pm-radius-sm);
+}
+
+/* ─── Section Title ────────────────────────────────────────────────────────── */
+.pm-section__title {
+  font-size: var(--pm-font-size-base);
+  font-weight: 700;
+  color: var(--pm-neutral-800);
+  margin: 0;
+}
+
 /* ─── Icon Buttons ─────────────────────────────────────────────────────────── */
 .pm-icon-btn {
   display: inline-flex;
@@ -883,6 +1107,22 @@
 /* ─── Filter Bar ───────────────────────────────────────────────────────────── */
 .pm-filter-bar {
   padding: var(--pm-spacing-3) var(--pm-spacing-4);
+}
+
+.pm-filter-bar__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--pm-spacing-3);
+  margin-bottom: var(--pm-spacing-2);
+}
+
+.pm-filter-bar__row:last-child {
+  margin-bottom: 0;
+}
+
+.pm-filter-bar__actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 /* ─── Pagination ───────────────────────────────────────────────────────────── */
@@ -952,6 +1192,14 @@
     align-items: stretch;
   }
 
+  .pm-filter-bar__row {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-recording-fees-summary__grid {
+    grid-template-columns: 1fr;
+  }
+
   .pm-table {
     font-size: var(--pm-font-size-xs);
   }
@@ -962,13 +1210,17 @@
 
   .pm-create-actions,
   .pm-create-layout__actions,
-  .pm-recording-form__actions {
+  .pm-recording-form__actions,
+  .pm-edit-installments__footer,
+  .pm-installment-config__save-actions {
     flex-direction: column-reverse;
   }
 
   .pm-create-actions .pm-btn,
   .pm-create-layout__actions .pm-btn,
-  .pm-recording-form__actions .pm-btn {
+  .pm-recording-form__actions .pm-btn,
+  .pm-edit-installments__footer .pm-btn,
+  .pm-installment-config__save-actions .pm-btn {
     width: 100%;
     justify-content: center;
   }
