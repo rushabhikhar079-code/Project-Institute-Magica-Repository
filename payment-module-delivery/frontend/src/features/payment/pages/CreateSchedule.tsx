@@ -47,6 +47,12 @@ interface CreateScheduleProps {
   onSaveAndPay: (scheduleId: string) => void;
 }
 
+const formatScheduleDate = (startDate: string, index: number, intervalMonths: number): string => {
+  const [year, month, day] = startDate.split("-").map(Number);
+  const date = new Date(year, month - 1 + index * intervalMonths, day);
+  return date.toLocaleDateString("en-GB");
+};
+
 export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack, onSaveAndPay }) => {
   const [student, setStudent] = useState<StudentSearchResult | null>(mockStudents[0] ?? null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
@@ -66,6 +72,8 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   const [workflowStep, setWorkflowStep] = useState<"initial" | "installments">("initial");
   const [initialInstallments, setInitialInstallments] = useState<Installment[]>([]);
   const [savedScheduleId, setSavedScheduleId] = useState<string | null>(null);
+  const [installmentStartDate, setInstallmentStartDate] = useState("");
+  const [intervalMonths, setIntervalMonths] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -329,9 +337,20 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
           status: "Pending" as const,
           remarks: "",
         }));
-    setInstallments(seeded);
-    setInitialInstallments(seeded.map((installment) => ({ ...installment })));
+    const datedInstallments = seeded.map((installment, index) => ({
+      ...installment,
+      installmentNo: index + 1,
+      dueDate: installmentStartDate ? formatScheduleDate(installmentStartDate, index, intervalMonths) : installment.dueDate,
+    }));
+    setInstallments(datedInstallments);
+    setInitialInstallments(datedInstallments.map((installment) => ({ ...installment })));
     setWorkflowStep("installments");
+  };
+
+  const handleResetInstallments = () => {
+    if (initialInstallments.length > 0) {
+      setInstallments(initialInstallments.map((installment) => ({ ...installment })));
+    }
   };
 
   const hasFeeSelection = feeLines.length > 0;
@@ -361,7 +380,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
       </div>
       {error && <SubjectSelectionAlert visible={true} message={error} onDismiss={() => setError(null)} />}
 
-      {workflowStep === "initial" && <section className="pm-card pm-schedule-form-card">
+      <section className="pm-card pm-schedule-form-card">
         <div className="pm-form-section__header"><h3 className="pm-form-section__title">STUDENT &amp; FEE DETAILS</h3></div>
         <div className="pm-schedule-form-card__grid">
           <div className="pm-schedule-form-card__fields">
@@ -379,27 +398,26 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             </div>
           </div>
         </div>
-      </section>}
+      </section>
 
-      {workflowStep === "initial" && <section className="pm-card pm-schedule-form-card">
+      <section className="pm-card pm-schedule-form-card">
         <div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT CONFIGURATION</h3></div>
         <div className="pm-schedule-config-grid">
           <div className="pm-schedule-config-fields">
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">No. Of Installments <i>*</i></span><input className="pm-input" type="number" min="1" max="5" value={installments.length || 3} onChange={(event) => { const count = Math.max(1, Math.min(5, Number(event.target.value) || 1)); const amounts = distributeEqually(totalPayable, count); setInstallments(amounts.map((amount, index) => ({ ...(installments[index] || { id: `inst-${Date.now()}-${index}`, installmentNo: index + 1, installmentName: `Installment ${index + 1}`, dueDate: "", discountAmount: 0, taxPercentage: 0, taxAmount: 0, paidAmount: 0, outstandingWithoutTax: amount, status: "Pending" as const, remarks: "" }), basicAmount: amount, netAmount: amount, outstandingAmount: amount, outstandingWithoutTax: amount }))); }} /><span>Maximum Installments <strong>5</strong></span></div>
-            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Interval</span><select className="pm-select"><option>1 Month</option><option>3 Months</option></select></div>
-            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Installment Start Date <i>*</i></span><input className="pm-input" type="date" /></div>
-            <button type="button" className="pm-btn pm-btn--primary" onClick={handleCreateInstallments} disabled={!hasFeeSelection}>Create Installment Manually</button>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Interval</span><select className="pm-select" value={intervalMonths} onChange={(event) => setIntervalMonths(Number(event.target.value))}><option value={1}>1 Month</option><option value={3}>3 Months</option></select></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Installment Start Date <i>*</i></span><input className="pm-input" type="date" value={installmentStartDate} onChange={(event) => setInstallmentStartDate(event.target.value)} /></div>
+            <button type="button" className="pm-btn pm-btn--primary" onClick={handleCreateInstallments} disabled={!hasFeeSelection || workflowStep === "installments"}>Create Installment Manually</button>
           </div>
           <label className="pm-form-group pm-schedule-remarks"><span className="pm-label">Remarks</span><textarea className="pm-textarea" maxLength={2000} rows={5} value={remarks} onChange={(event) => setRemarks(event.target.value)} /><span className="pm-character-count">{remarks.length} / 2000</span></label>
         </div>
-      </section>}
+      </section>
 
       {workflowStep === "installments" && hasFeeSelection && <>
-        <section className="pm-card pm-schedule-manual-card"><div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT DETAILS</h3></div><InstallmentConfiguration installments={installments} initialInstallments={initialInstallments} totalPayable={totalPayable} subjectFees={calculateTotalPayable(feeLines.filter((line) => line.type !== "OtherFee"))} adjustmentSummaryAmount={globalDiscount} onChange={setInstallments} paymentType={paymentType} /></section>
-        <ApplicableOtherFees fees={otherFees} selectedCodes={selectedOtherFeeCodes} onToggle={handleToggleOtherFee} />
-        <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={() => setWorkflowStep("initial")}>Cancel</button><button type="button" className="pm-btn pm-btn--warning" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save</button><button type="button" className="pm-btn pm-btn--primary" onClick={handleSaveAndPay} disabled={saving || !student || !hasFeeSelection}>Save &amp; Pay</button></div>
+        <section className="pm-card pm-schedule-manual-card"><div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT DETAILS</h3></div><InstallmentConfiguration installments={installments} initialInstallments={initialInstallments} totalPayable={totalPayable} subjectFees={calculateTotalPayable(feeLines.filter((line) => line.type !== "OtherFee"))} adjustmentSummaryAmount={globalDiscount} onChange={setInstallments} paymentType={paymentType} showHeader={false} showAdvancedControls={false} /></section>
+        <ApplicableOtherFees fees={otherFees} selectedCodes={selectedOtherFeeCodes} onToggle={handleToggleOtherFee} studentName={student?.Name || "Student"} />
+        <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--ghost" onClick={handleResetInstallments}>Reset Installments</button><button type="button" className="pm-btn pm-btn--secondary" onClick={() => setWorkflowStep("initial")}>Cancel</button><button type="button" className="pm-btn pm-btn--warning" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save</button><button type="button" className="pm-btn pm-btn--primary" onClick={handleSaveAndPay} disabled={saving || !student || !hasFeeSelection}>Save &amp; Pay</button></div>
       </>}
-      {workflowStep === "initial" && <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>Cancel</button></div>}
       <SubjectSelectionDialog open={showStudentDialog} branchId={branchId} onClose={() => setShowStudentDialog(false)} onSelect={(selected) => setStudent(selected)} />
     </div>
   );

@@ -23,6 +23,8 @@ interface InstallmentConfigurationProps {
   paymentType: "LumpSum" | "Adhoc" | "Installment";
   onSave?: () => void;
   onSaveAndPay?: () => void;
+  showHeader?: boolean;
+  showAdvancedControls?: boolean;
 }
 
 export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> = ({
@@ -35,6 +37,8 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
   paymentType,
   onSave,
   onSaveAndPay,
+  showHeader = true,
+  showAdvancedControls = true,
 }) => {
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [selectedInstallmentIdx, setSelectedInstallmentIdx] = useState<number | null>(null);
@@ -254,15 +258,15 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
 
   return (
     <div className="pm-card pm-installment-config">
-      <div className="pm-installment-config__header">
+      {showHeader && <div className="pm-installment-config__header">
         <h4 className="pm-installment-config__title">Custom Installment Schedule</h4>
         <p className="pm-installment-config__subtitle">
           Choose the number of installments, set custom due dates and amounts, or distribute equally.
           Monthly and Quarterly are convenience options — they do not restrict manual editing.
         </p>
-      </div>
+      </div>}
 
-      <div className="pm-installment-config__toolbar">
+      {showAdvancedControls && <div className="pm-installment-config__toolbar">
         <button
           type="button"
           className="pm-btn pm-btn--secondary"
@@ -301,25 +305,25 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
             </span>
           )}
         </div>
-      </div>
+      </div>}
 
       <div className="pm-installment-config__table">
         <table className="pm-table">
           <thead>
             <tr>
-              <th style={{ width: "40px" }}>#</th>
+              <th style={{ width: "40px" }}>No.</th>
               <th style={{ width: "180px" }}>Installment Name</th>
               <th style={{ width: "160px" }}>Installment Date</th>
               <th style={{ width: "140px" }}>Amount</th>
               <th style={{ width: "120px" }}>Discount</th>
               <th style={{ width: "120px" }}>Total</th>
-              <th style={{ width: "40px" }}></th>
+              {showAdvancedControls && <th style={{ width: "40px" }}></th>}
             </tr>
           </thead>
           <tbody>
             {installments.map((inst) => (
               <tr key={inst.id}>
-                <td className="pm-text-center">{inst.installmentNo}</td>
+                <td className="pm-text-center">{String(inst.installmentNo).padStart(2, "0")}</td>
                 <td>
                   <input
                     type="text"
@@ -366,7 +370,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
                   />
                 </td>
                 <td className="pm-text-right pm-text-semibold">{formatCurrency(inst.netAmount)}</td>
-                <td className="pm-text-center">
+                {showAdvancedControls && <td className="pm-text-center">
                   {installments.length > 1 && (
                     <button
                       type="button"
@@ -377,26 +381,27 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
-                </td>
+                </td>}
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="pm-table__total-row">
-              <td colSpan={5}>Total Payable</td>
+              <td colSpan={showAdvancedControls ? 5 : 4}>Total</td>
               <td className="pm-text-right">{formatCurrency(sumNet)}</td>
-              <td></td>
+              {showAdvancedControls && <td></td>}
             </tr>
           </tfoot>
         </table>
       </div>
 
       <div className="pm-installment-summary-boxes">
-        <div><span>Subject Fees</span><strong>{formatCurrency(subjectFees)}</strong></div>
-        <div><span>Adjustment Amount</span><strong>{formatCurrency(adjustmentSummaryAmount)}</strong></div>
-        <div><span>Total Payable Amount</span><strong>{formatCurrency(totalPayable)}</strong></div>
+        <div className="pm-installment-summary-box pm-installment-summary-box--subject"><span>Subject Fees</span><strong>{formatCurrency(subjectFees)}</strong></div>
+        <div className="pm-installment-summary-box pm-installment-summary-box--adjustment"><span>Adjustment Amount</span><strong>{formatCurrency(adjustmentSummaryAmount)}</strong></div>
+        <div className="pm-installment-summary-box pm-installment-summary-box--payable"><span>Total Payable Amount</span><strong>{formatCurrency(totalPayable)}</strong></div>
       </div>
 
+      {showAdvancedControls && <>
       {/* Adjustment Options */}
       <div className="pm-installment-config__adjustment">
         <button
@@ -496,6 +501,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
           )}
         </div>
       )}
+      </>}
     </div>
   );
 };

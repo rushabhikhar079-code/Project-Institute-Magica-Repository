@@ -2370,6 +2370,14 @@
   background: #f5f8fc;
 }
 
+.pm-installment-summary-box--subject { border-color: #65bd78 !important; background: #dff7e4 !important; }
+.pm-installment-summary-box--subject strong { color: #25733b; }
+.pm-installment-summary-box--adjustment { border-color: #e2a34b !important; background: #fff0d9 !important; }
+.pm-installment-summary-box--adjustment strong { color: #9a5c09; }
+.pm-installment-summary-box--payable { border-color: #75a9d1 !important; background: #dceeff !important; }
+.pm-installment-summary-box--payable strong { color: #125487; }
+
+
 .pm-installment-summary-boxes span {
   color: #5f6875;
   font-size: 12px;
@@ -2384,6 +2392,31 @@
   overflow: hidden;
 }
 
+.pm-other-fees__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 15px;
+  border-bottom: 1px solid #d5d9df;
+}
+
+.pm-other-fees__header .pm-form-section__title { margin: 0; }
+.pm-other-fees__header > span { margin-left: auto; color: #85898e; font-size: 12px; }
+
+.pm-other-fees__table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.pm-other-fees__table th,
+.pm-other-fees__table td { padding: 10px 12px; }
+.pm-other-fees__table tbody tr:nth-child(even) { background: #e7f0fb; }
+.pm-other-fees__table th:nth-child(n + 3),
+.pm-other-fees__table td:nth-child(n + 3) { text-align: right; }
+.pm-other-fees__table th:first-child,
+.pm-other-fees__table td:first-child { text-align: left; }
+
 .pm-other-fees__table {
   margin-top: 0;
 }
@@ -2393,6 +2426,8 @@
 }
 
 @media (max-width: 640px) {
+  .pm-other-fees__header { align-items: flex-start; flex-wrap: wrap; padding-block: 12px; }
+  .pm-other-fees__header > span { margin-left: 0; }
   .pm-installment-summary-boxes {
     grid-template-columns: 1fr;
   }
