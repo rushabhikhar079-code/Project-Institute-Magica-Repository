@@ -60,6 +60,7 @@ import ExpSubjects from "./features/courses/ManageSubjects/pages/ExportSubject";
 import ExpTopics from "./features/courses/ManageTopics/pages/ExportTopics";
 import ExpStudyMaterial from "./features/courses/study-material/pages/ExportStudyMaterial";
 import { InstStudyMaterial } from "./features/courses/study-material/pages/InstStudyMaterial";
+import PaymentPreview from "./components/PaymentPreview";
 // import { InstStudyMaterial } from "./features/courses/study-material/pages/InstStudyMaterial";
 // ─── Page wrappers ────────────────────────────────────────────────────────────
 // Each wrapper pulls selectedBranch + navigate from context and passes them
@@ -380,6 +381,7 @@ export const router = createBrowserRouter(
     { path: "/forgot-password", element: <ForgotPasswordPage /> },
     { path: "/register", element: <Register /> },
     { path: "/institute-register", element: <InstituteRegister /> },
+    { path: "/payment-preview", element: <PaymentPreview /> },
     {
       path: "/",
       element: <ProtectedRoute />,

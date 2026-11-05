@@ -138,7 +138,15 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     <td>{student.PContact}</td>
                     <td>{student.CourseNames}</td>
                     <td className="pm-text-center">
-                      <button type="button" className="pm-btn pm-btn--ghost pm-btn--sm">
+                      <button
+                        type="button"
+                        className="pm-btn pm-btn--ghost pm-btn--sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelect(student);
+                          onClose();
+                        }}
+                      >
                         Select
                       </button>
                     </td>

@@ -52,6 +52,14 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
 
   const handleDone = () => {
     const updates: Partial<PaymentSchedule> = { remarks };
+    if (changeDate && newDueDate && schedule.installments.length > 0) {
+      updates.installments = schedule.installments.map((inst, idx) =>
+        idx === 0 ? { ...inst, dueDate: newDueDate } : inst,
+      );
+    }
+    if (changeDiscount) {
+      updates.totalDiscount = round2(newDiscount);
+    }
     if (changePayable) {
       updates.totalPayable = round2(newTotalPayable);
     }

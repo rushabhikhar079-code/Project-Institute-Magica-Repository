@@ -34,6 +34,7 @@ import {
 import { PAYMENT_TYPES, FEES_TYPE } from "../paymentConstants";
 import { SubjectSelectionDialog } from "../dialogs/SubjectSelectionDialog";
 import { SubjectSelection } from "../components/SubjectSelection";
+import { SubjectSelectionAlert } from "../components/SubjectSelectionAlert";
 import { ApplicableOtherFees } from "../components/ApplicableOtherFees";
 import { InstallmentConfiguration } from "../components/InstallmentConfiguration";
 import { PaymentSummaryPanel } from "../components/PaymentSummaryPanel";
@@ -283,7 +284,11 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
       </div>
 
       {error && (
-        <div className="pm-error-banner">{error}</div>
+        <SubjectSelectionAlert
+          visible={true}
+          message={error}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <div className="pm-create-layout">
