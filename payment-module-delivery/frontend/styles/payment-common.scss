@@ -2288,3 +2288,259 @@
     width: 100%;
   }
 }
+
+.pm-recording-page__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pm-recording-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(300px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.pm-recording-layout__main {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.pm-recording-card,
+.pm-recording-summary {
+  background: #fff;
+  border: 1px solid #d5d9df;
+  box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-recording-card {
+  overflow: hidden;
+  padding: 0 20px 20px;
+}
+
+.pm-recording-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  margin: 0 -20px 16px;
+  padding: 0 15px;
+  border-bottom: 1px solid #d5d9df;
+}
+
+.pm-recording-card__heading h3 {
+  margin: 0;
+  color: var(--pm-brand);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pm-recording-card__heading span {
+  margin-left: auto;
+  color: #85898e;
+  font-size: 12px;
+}
+
+.pm-recording-table-wrap {
+  overflow-x: auto;
+}
+
+.pm-recording-table {
+  min-width: 760px;
+}
+
+.pm-recording-table thead th {
+  background: #e5eaf4;
+  color: #172033;
+  border-bottom: 0;
+}
+
+.pm-recording-table tbody tr:nth-child(even) {
+  background: #e7f0fb;
+}
+
+.pm-recording-table tbody tr.is-selected {
+  background: #dce9ff;
+}
+
+.pm-recording-table td,
+.pm-recording-table th {
+  padding: 10px 8px;
+  white-space: nowrap;
+}
+
+.pm-recording-table__name {
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.pm-recording-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.pm-recording-summary {
+  padding: 0 15px 24px;
+}
+
+.pm-recording-summary .pm-recording-card__heading {
+  margin-inline: -15px;
+}
+
+.pm-recording-summary .pm-form-group {
+  margin-bottom: 12px;
+}
+
+.pm-recording-summary__group {
+  margin: 12px -15px 0;
+  padding: 0 15px 10px;
+}
+
+.pm-recording-summary__group h4 {
+  margin: 0 -15px 5px;
+  padding: 8px 15px;
+  background: #e5efff;
+  color: var(--pm-brand);
+  font-size: 13px;
+}
+
+.pm-recording-summary__group div,
+.pm-recording-summary__total {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+}
+
+.pm-recording-summary__total {
+  margin: 10px 0 16px;
+  padding: 14px 10px;
+  background: #d8ebff;
+  color: var(--pm-brand);
+}
+
+.pm-recording-summary__total strong {
+  font-size: 20px;
+}
+
+.pm-recording-summary__save {
+  width: 100%;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.pm-recording-summary__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pm-recording-summary__actions .pm-btn {
+  justify-content: center;
+  padding-inline: 8px;
+}
+
+@media (max-width: 1050px) {
+  .pm-recording-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pm-recording-page__topbar,
+  .pm-recording-card__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 12px;
+  }
+
+  .pm-recording-card__heading span {
+    margin-left: 0;
+  }
+
+  .pm-recording-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pm-schedule-payment-page { max-width: 1400px; }
+.pm-schedule-form-card { padding: 0 20px 24px; overflow: hidden; }
+.pm-schedule-form-card__grid, .pm-schedule-config-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; padding-top: 22px; }
+.pm-schedule-form-card__fields, .pm-schedule-config-fields { display: grid; gap: 17px; align-content: start; }
+.pm-form-row--inline { display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: center; gap: 14px; margin: 0; }
+.pm-form-row--inline .pm-label { color: #293448; font-weight: 500; }
+.pm-form-row--inline .pm-label i, .pm-schedule-subjects i { color: #e33a3a; font-style: normal; }
+.pm-radio-row, .pm-discount-control { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.pm-radio-row label, .pm-discount-control label { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pm-discount-control .pm-input { width: 120px; }
+.pm-schedule-total { width: 120px; }
+.pm-schedule-subjects__heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.pm-schedule-subjects__heading label { display: inline-flex; align-items: center; gap: 7px; }
+.pm-schedule-subjects__tree { max-height: 198px; overflow-y: auto; border: 1px solid #9d9d9d; }
+.pm-schedule-subjects__tree label { display: flex; align-items: center; gap: 9px; min-height: 32px; padding: 0 8px; font-size: 13px; }
+.pm-schedule-subjects__course > label { background: #dceeff; border-bottom: 1px solid #b9c3ce; }
+.pm-schedule-subjects__course:nth-child(even) > label { background: #edf1f5; }
+.pm-schedule-subjects__subject { padding-left: 30px !important; }
+.pm-schedule-config-grid { grid-template-columns: 1.15fr 1fr; }
+.pm-schedule-config-fields { gap: 24px; }
+.pm-schedule-config-fields > .pm-btn { justify-self: start; margin-top: 12px; }
+.pm-schedule-remarks { position: relative; }
+.pm-character-count { color: #888; font-size: 12px; text-align: right; }
+.pm-schedule-manual-card { padding-bottom: 0; }
+.pm-schedule-manual-card > .pm-installment-config { border: 0; box-shadow: none; padding-inline: 0; }
+.pm-schedule-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 16px; background: #dff0ff; }
+@media (max-width: 900px) {
+  .pm-schedule-form-card__grid, .pm-schedule-config-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+@media (max-width: 640px) {
+  .pm-form-row--inline { grid-template-columns: 1fr; gap: 6px; }
+  .pm-schedule-actions { flex-wrap: wrap; }
+}
+
+.pm-validation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.pm-validation-dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  width: min(550px, calc(100vw - 32px));
+  min-height: 128px;
+  padding: 20px 20px 15px 24px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 9px 18px rgba(0, 0, 0, 0.28);
+}
+
+.pm-validation-dialog::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 160px;
+  height: 64px;
+  border-radius: 0 70% 0 9px;
+  background: #dcecff;
+  z-index: 0;
+}
+
+.pm-validation-dialog > * { position: relative; z-index: 1; }
+.pm-validation-dialog__close { position: absolute; top: 12px; right: 14px; border: 0; background: transparent; color: #777; cursor: pointer; }
+.pm-validation-dialog__close svg { width: 20px; height: 20px; }
+.pm-validation-dialog__icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #e8f3ff; color: #2584dc; }
+.pm-validation-dialog__icon svg { width: 34px; height: 34px; }
+.pm-validation-dialog__content { display: grid; gap: 10px; color: #172033; font-size: 14px; }
+.pm-validation-dialog__content strong { font-size: 17px; }
+.pm-validation-dialog__ok { align-self: end; min-width: 90px; justify-content: center; }
+.pm-validation-dialog__ok svg { width: 16px; height: 16px; }

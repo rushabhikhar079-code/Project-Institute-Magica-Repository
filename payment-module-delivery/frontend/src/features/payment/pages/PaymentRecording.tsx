@@ -1,12 +1,6 @@
-// ─── Payment Recording Page (XD Screen 6) ──────────────────────────────────────
-// Records a payment collection against an installment.
-// Supports: Cash, Cheque, UPI, Card, Bank Transfer, Online.
-// For Adhoc: after partial collection, remaining balance auto-becomes next installment.
-// XD Screen 6 additions: Edit All Installments, receipt date/number, course fees
-// summary, other fees, send notification, send payment link.
-import React, { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Save, Edit3, Send, Bell } from "lucide-react";
-import type { PaymentSchedule, Installment, PaymentRecordingForm, PaymentMethod } from "../paymentTypes";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { CalendarDays, Edit3, Link2, Save, Send } from "lucide-react";
+import type { FeeLine, Installment, PaymentMethod, PaymentRecordingForm, PaymentSchedule } from "../paymentTypes";
 import { getScheduleByIdMock, recordPaymentMock, sendPaymentLinkMock } from "../paymentService";
 import { PAYMENT_METHODS } from "../paymentConstants";
 import { formatCurrency, round2 } from "../paymentCalculations";
@@ -20,6 +14,18 @@ interface PaymentRecordingProps {
   onEditInstallments: (scheduleId: string) => void;
 }
 
+const toInputDate = (value: string): string => {
+  if (!value) return "";
+  if (value.includes("/")) return value.split("/").reverse().join("-");
+  return value;
+};
+
+const toDisplayDate = (value: string): string =>
+  value ? new Date(value).toLocaleDateString("en-GB") : "";
+
+const feeTotal = (lines: FeeLine[]): number =>
+  round2(lines.reduce((sum, line) => sum + line.netAmount, 0));
+
 export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   scheduleId,
   installmentId,
@@ -32,11 +38,10 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  // Form state
-  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string>("");
-  const [amountReceived, setAmountReceived] = useState<number>(0);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
+  const [notificationResult, setNotificationResult] = useState<string | null>(null);
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState(installmentId || "");
+  const [amountReceived, setAmountReceived] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("UPI");
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
   const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split("T")[0]);
   const [receiptNo, setReceiptNo] = useState("");
@@ -48,66 +53,82 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
   const [remarks, setRemarks] = useState("");
   const [sendNotification, setSendNotification] = useState(false);
   const [sendPaymentLink, setSendPaymentLink] = useState(false);
-  const [notificationResult, setNotificationResult] = useState<string | null>(null);
+  const [showAllOtherFees, setShowAllOtherFees] = useState(false);
+  const [selectedOtherFeeIds, setSelectedOtherFeeIds] = useState<string[]>([]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
     try {
-      const sch = await getScheduleByIdMock(scheduleId);
-      setSchedule(sch);
-      if (sch) {
+      const loadedSchedule = await getScheduleByIdMock(scheduleId);
+      setSchedule(loadedSchedule);
+      if (loadedSchedule) {
         const target = installmentId
-          ? sch.installments.find((i) => i.id === installmentId)
-          : sch.installments.find((i) => i.outstandingAmount > 0 && i.status !== "Cancelled");
+          ? loadedSchedule.installments.find((item) => item.id === installmentId)
+          : loadedSchedule.installments.find((item) => item.outstandingAmount > 0 && item.status !== "Cancelled");
         if (target) {
           setSelectedInstallmentId(target.id);
           setAmountReceived(target.outstandingAmount);
         }
+        setSelectedOtherFeeIds(
+          loadedSchedule.feeLines.filter((line) => line.type === "OtherFee").map((line) => line.id),
+        );
       }
     } catch {
       setSchedule(null);
+      setError("Failed to load payment details.");
     } finally {
       setLoading(false);
     }
-  }, [scheduleId, installmentId]);
+  }, [installmentId, scheduleId]);
 
   useEffect(() => {
     fetchSchedule();
   }, [fetchSchedule]);
 
   const selectedInstallment: Installment | undefined = schedule?.installments.find(
-    (i) => i.id === selectedInstallmentId,
+    (item) => item.id === selectedInstallmentId,
   );
 
-  const requiresInstrument = paymentMethod === "Cheque" || paymentMethod === "BankTransfer";
+  const courseFeeLines = useMemo(
+    () => schedule?.feeLines.filter((line) => line.type !== "OtherFee") ?? [],
+    [schedule],
+  );
+  const otherFeeLines = useMemo(
+    () => schedule?.feeLines.filter((line) => line.type === "OtherFee") ?? [],
+    [schedule],
+  );
+  const visibleOtherFees = showAllOtherFees ? otherFeeLines : otherFeeLines.slice(0, 2);
+  const selectedOtherFees = otherFeeLines.filter((line) => selectedOtherFeeIds.includes(line.id));
+  const selectedOtherFeesTotal = feeTotal(selectedOtherFees);
+  const courseFeesTotal = feeTotal(courseFeeLines);
+
+  const handleInstallmentChange = (id: string) => {
+    setSelectedInstallmentId(id);
+    const installment = schedule?.installments.find((item) => item.id === id);
+    if (installment) setAmountReceived(installment.outstandingAmount);
+  };
+
+  const toggleOtherFee = (id: string) => {
+    setSelectedOtherFeeIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
+  };
 
   const handleSave = async () => {
     setError(null);
     setSuccess(null);
     setNotificationResult(null);
-
     if (!schedule || !selectedInstallment) {
       setError("Please select an installment.");
       return;
     }
-
     if (amountReceived <= 0) {
       setError("Amount must be greater than 0.");
       return;
     }
-
-    if (amountReceived > selectedInstallment.outstandingAmount) {
-      const proceed = window.confirm(
-        `Amount (${formatCurrency(amountReceived)}) exceeds outstanding balance (${formatCurrency(selectedInstallment.outstandingAmount)}). Record anyway?`,
-      );
-      if (!proceed) return;
-    }
-
-    if (requiresInstrument && !bank.trim()) {
-      setError("Bank name is required for this payment method.");
+    if (amountReceived > selectedInstallment.outstandingAmount && !window.confirm("The amount is greater than the outstanding balance. Record anyway?")) {
       return;
     }
-
     if (paymentMethod === "Cheque" && !chequeNo.trim()) {
       setError("Cheque number is required for cheque payments.");
       return;
@@ -117,46 +138,35 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
     try {
       const form: PaymentRecordingForm = {
         scheduleId,
-        installmentId: selectedInstallmentId,
+        installmentId: selectedInstallment.id,
         amountReceived: round2(amountReceived),
         paymentMethod,
-        payDate: payDate ? new Date(payDate).toLocaleDateString("en-GB") : "",
-        receiptDate: receiptDate ? new Date(receiptDate).toLocaleDateString("en-GB") : "",
+        payDate: toDisplayDate(payDate),
+        receiptDate: toDisplayDate(receiptDate),
         receiptNo,
         manualReceiptNo,
         chequeNo,
-        chequeDate: chequeDate ? new Date(chequeDate).toLocaleDateString("en-GB") : "",
+        chequeDate: toDisplayDate(chequeDate),
         bank,
         branchAddr,
         remarks,
         sendNotification,
         sendPaymentLink,
       };
-
       const result = await recordPaymentMock(form);
-
-      if (schedule.paymentType === "Adhoc" && result.schedule.totalOutstanding > 0) {
-        setSuccess(
-          `Payment of ${formatCurrency(amountReceived)} recorded. Remaining balance of ${formatCurrency(result.schedule.totalOutstanding)} has been auto-created as the next Adhoc installment.`,
-        );
-      } else {
-        setSuccess(`Payment of ${formatCurrency(amountReceived)} recorded successfully. Receipt No: ${result.receipt.receiptNo}`);
-      }
-
-      // Handle notification / payment link
+      setSuccess(`Payment of ${formatCurrency(amountReceived)} recorded successfully.`);
       if (sendNotification || sendPaymentLink) {
         const linkResult = await sendPaymentLinkMock({
           scheduleId,
-          channel: "Email",
-          recipient: schedule.studentEmail,
+          channel: "WhatsApp",
+          recipient: schedule.studentMobile,
           studentName: schedule.studentName,
           amount: result.schedule.totalOutstanding,
         });
         setNotificationResult(linkResult.message);
       }
-
       await fetchSchedule();
-      setTimeout(() => onRecorded(scheduleId), 2000);
+      window.setTimeout(() => onRecorded(scheduleId), 900);
     } catch {
       setError("Failed to record payment. Please try again.");
     } finally {
@@ -164,341 +174,67 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
     }
   };
 
-  if (loading) {
-    return <div className="pm-page"><div className="pm-loading">Loading schedule...</div></div>;
-  }
-
-  if (!schedule) {
-    return (
-      <div className="pm-page">
-        <div className="pm-empty-state">
-          <p className="pm-empty-state__text">Schedule not found.</p>
-          <button type="button" className="pm-btn pm-btn--primary" onClick={onBack}>Back</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (schedule.status === "Cancelled") {
-    return (
-      <div className="pm-page">
-        <div className="pm-page__header">
-          <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-        </div>
-        <div className="pm-card pm-empty-state">
-          <p className="pm-empty-state__text">This schedule is cancelled. Payments cannot be recorded.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Separate fee lines by type for summary display
-  const courseFeeLines = schedule.feeLines.filter((l) => l.type === "Course");
-  const subjectFeeLines = schedule.feeLines.filter((l) => l.type === "Subject");
-  const otherFeeLines = schedule.feeLines.filter((l) => l.type === "OtherFee");
+  if (loading) return <div className="pm-page"><div className="pm-loading">Loading payment details...</div></div>;
+  if (!schedule) return <div className="pm-page"><div className="pm-empty-state"><p className="pm-empty-state__text">Schedule not found.</p><button type="button" className="pm-btn pm-btn--primary" onClick={onBack}>Back</button></div></div>;
 
   return (
-    <div className="pm-page">
-      <div className="pm-page__header">
-        <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-        <h1 className="pm-page__title">Record Payment</h1>
-        <button
-          type="button"
-          className="pm-btn pm-btn--secondary"
-          onClick={() => onEditInstallments(scheduleId)}
-          title="Edit All Installments"
-        >
-          <Edit3 className="w-4 h-4" />
-          Edit All Installments
-        </button>
+    <div className="pm-page pm-recording-page">
+      <div className="pm-recording-page__topbar">
+        <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>← Back To Payment</button>
+        <button type="button" className="pm-btn pm-btn--secondary" onClick={() => onEditInstallments(schedule.id)}><Edit3 /> Edit All Installments</button>
       </div>
-
       {error && <div className="pm-error-banner">{error}</div>}
       {success && <div className="pm-success-banner">{success}</div>}
-      {notificationResult && (
-        <div className="pm-dialog__notice pm-dialog__notice--info">
-          Notification: {notificationResult}
-        </div>
-      )}
-
+      {notificationResult && <div className="pm-dialog__notice pm-dialog__notice--info">{notificationResult}</div>}
       <StudentDetailsBanner schedule={schedule} />
 
-      {/* Course/Subject/Other Fees Summary */}
-      <div className="pm-card pm-recording-fees-summary">
-        <h3 className="pm-section__title">Fee Breakdown</h3>
-        <div className="pm-recording-fees-summary__grid">
-          {courseFeeLines.length > 0 && (
-            <div className="pm-recording-fees-summary__group">
-              <h4 className="pm-recording-fees-summary__label">Course Fees</h4>
-              {courseFeeLines.map((l) => (
-                <div key={l.id} className="pm-recording-fees-summary__item">
-                  <span>{l.name}</span>
-                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
-                </div>
-              ))}
+      <div className="pm-recording-layout">
+        <div className="pm-recording-layout__main">
+          <section className="pm-recording-card">
+            <div className="pm-recording-card__heading"><h3>INSTALLMENT</h3><button type="button" className="pm-btn pm-btn--secondary" onClick={() => onEditInstallments(schedule.id)}>Edit All Installments</button></div>
+            <div className="pm-recording-table-wrap">
+              <table className="pm-table pm-recording-table">
+                <thead><tr><th>No.</th><th>Name</th><th>Date</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th><th>Actions</th></tr></thead>
+                <tbody>{schedule.installments.map((item) => <tr key={item.id} className={item.id === selectedInstallmentId ? "is-selected" : ""}>
+                  <td><input type="checkbox" checked={item.id === selectedInstallmentId} onChange={() => handleInstallmentChange(item.id)} aria-label={`Select ${item.installmentName}`} /></td>
+                  <td>{String(item.installmentNo).padStart(2, "0")}<span className="pm-recording-table__name">{item.installmentName}</span></td>
+                  <td>{item.dueDate || "-"}</td><td>{formatCurrency(item.basicAmount)}</td><td>{formatCurrency(item.discountAmount)}</td><td>{formatCurrency(item.netAmount)}</td><td>{formatCurrency(item.taxAmount)}</td><td className="pm-text-semibold">{formatCurrency(item.netAmount)}</td>
+                  <td><button type="button" className="pm-icon-btn" title="Select installment" onClick={() => handleInstallmentChange(item.id)}><Edit3 /></button></td>
+                </tr>)}</tbody>
+              </table>
             </div>
-          )}
-          {subjectFeeLines.length > 0 && (
-            <div className="pm-recording-fees-summary__group">
-              <h4 className="pm-recording-fees-summary__label">Subject Fees</h4>
-              {subjectFeeLines.map((l) => (
-                <div key={l.id} className="pm-recording-fees-summary__item">
-                  <span>{l.name}</span>
-                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {otherFeeLines.length > 0 && (
-            <div className="pm-recording-fees-summary__group">
-              <h4 className="pm-recording-fees-summary__label">Other Fees</h4>
-              {otherFeeLines.map((l) => (
-                <div key={l.id} className="pm-recording-fees-summary__item">
-                  <span>{l.name}</span>
-                  <span className="pm-text-semibold">{formatCurrency(l.netAmount)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+          </section>
 
-      <div className="pm-card pm-recording-form">
-        <h3 className="pm-recording-form__title">Payment Details</h3>
+          <section className="pm-recording-card">
+            <div className="pm-recording-card__heading"><h3>APPLICABLE OTHER FEES</h3><span>Showing {otherFeeLines.length} Applicable Fees For {schedule.studentName.toUpperCase()}</span><button type="button" className="pm-btn pm-btn--secondary" onClick={() => setShowAllOtherFees((value) => !value)}>{showAllOtherFees ? "Show Less" : "Show All Other Fees"}</button></div>
+            <div className="pm-recording-table-wrap"><table className="pm-table pm-recording-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{visibleOtherFees.map((line) => <tr key={line.id}><td><input type="checkbox" checked={selectedOtherFeeIds.includes(line.id)} onChange={() => toggleOtherFee(line.id)} /> {line.name}</td><td>One Time</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody><tfoot><tr className="pm-table__total-row"><td colSpan={2}>Selected Other Fees Total ({selectedOtherFees.length} selected)</td><td colSpan={4}></td><td>{formatCurrency(selectedOtherFeesTotal)}</td></tr></tfoot></table></div>
+          </section>
 
-        {/* Installment Selection */}
-        <div className="pm-form-group">
-          <label className="pm-label">Select Installment</label>
-          <select
-            className="pm-select"
-            value={selectedInstallmentId}
-            onChange={(e) => {
-              setSelectedInstallmentId(e.target.value);
-              const inst = schedule.installments.find((i) => i.id === e.target.value);
-              if (inst) setAmountReceived(inst.outstandingAmount);
-            }}
-          >
-            <option value="">Select an installment</option>
-            {schedule.installments
-              .filter((i) => i.status !== "Paid" && i.status !== "Cancelled")
-              .map((inst) => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.installmentName || `Installment ${inst.installmentNo}`} - Due: {inst.dueDate} - Outstanding: {formatCurrency(inst.outstandingAmount)}
-                </option>
-              ))}
-          </select>
+          <section className="pm-recording-card">
+            <div className="pm-recording-card__heading"><h3>PAYMENT DETAILS</h3></div>
+            <div className="pm-recording-fields">
+              <label className="pm-form-group"><span className="pm-label">Payment method</span><select className="pm-select" value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}>{PAYMENT_METHODS.map((method) => <option key={method.value} value={method.value}>{method.label}</option>)}</select></label>
+              <label className="pm-form-group"><span className="pm-label">Reference/Transaction Number</span><input className="pm-input" value={receiptNo} onChange={(event) => setReceiptNo(event.target.value)} placeholder="e.g.12347625" /></label>
+              <label className="pm-form-group"><span className="pm-label">Amount Received</span><input className="pm-input" type="number" min="0" value={amountReceived} onChange={(event) => setAmountReceived(Number(event.target.value) || 0)} /></label>
+              {paymentMethod === "Cheque" && <label className="pm-form-group"><span className="pm-label">Cheque No.</span><input className="pm-input" value={chequeNo} onChange={(event) => setChequeNo(event.target.value)} /></label>}
+            </div>
+          </section>
+
+          <section className="pm-recording-card"><div className="pm-recording-card__heading"><h3>REMARKS</h3></div><textarea className="pm-textarea" rows={3} value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Optional notes" /></section>
         </div>
 
-        {selectedInstallment && (
-          <div className="pm-recording-form__installment-info">
-            <div className="pm-recording-form__info-item">
-              <span className="pm-label">Installment</span>
-              <span className="pm-text-semibold">{selectedInstallment.installmentName || `#${selectedInstallment.installmentNo}`}</span>
-            </div>
-            <div className="pm-recording-form__info-item">
-              <span className="pm-label">Net Amount</span>
-              <span className="pm-text-semibold">{formatCurrency(selectedInstallment.netAmount)}</span>
-            </div>
-            <div className="pm-recording-form__info-item">
-              <span className="pm-label">Paid</span>
-              <span className="pm-text-success pm-text-semibold">{formatCurrency(selectedInstallment.paidAmount)}</span>
-            </div>
-            <div className="pm-recording-form__info-item">
-              <span className="pm-label">Outstanding</span>
-              <span className="pm-text-danger pm-text-semibold">{formatCurrency(selectedInstallment.outstandingAmount)}</span>
-            </div>
-            <div className="pm-recording-form__info-item">
-              <span className="pm-label">Outstanding (excl. Tax)</span>
-              <span className="pm-text-danger pm-text-semibold">{formatCurrency(selectedInstallment.outstandingWithoutTax)}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="pm-dialog__form-row">
-          <div className="pm-form-group">
-            <label className="pm-label">Amount Received *</label>
-            <input
-              type="number"
-              className="pm-input"
-              step="0.01"
-              min="0"
-              value={amountReceived}
-              onChange={(e) => setAmountReceived(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          <div className="pm-form-group">
-            <label className="pm-label">Payment Method *</label>
-            <select
-              className="pm-select"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-            >
-              {PAYMENT_METHODS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="pm-dialog__form-row">
-          <div className="pm-form-group">
-            <label className="pm-label">Payment Date *</label>
-            <input
-              type="date"
-              className="pm-input"
-              value={payDate}
-              onChange={(e) => setPayDate(e.target.value)}
-            />
-          </div>
-          <div className="pm-form-group">
-            <label className="pm-label">Receipt Date</label>
-            <input
-              type="date"
-              className="pm-input"
-              value={receiptDate}
-              onChange={(e) => setReceiptDate(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="pm-dialog__form-row">
-          <div className="pm-form-group">
-            <label className="pm-label">Receipt No.</label>
-            <input
-              type="text"
-              className="pm-input"
-              value={receiptNo}
-              onChange={(e) => setReceiptNo(e.target.value)}
-              placeholder="Auto-generated if left blank"
-            />
-          </div>
-          <div className="pm-form-group">
-            <label className="pm-label">Manual Receipt No.</label>
-            <input
-              type="text"
-              className="pm-input"
-              value={manualReceiptNo}
-              onChange={(e) => setManualReceiptNo(e.target.value)}
-              placeholder="Optional manual receipt number"
-            />
-          </div>
-        </div>
-
-        {requiresInstrument && (
-          <>
-            <div className="pm-dialog__form-row">
-              <div className="pm-form-group">
-                <label className="pm-label">
-                  {paymentMethod === "Cheque" ? "Cheque No. *" : "Transaction Ref."}
-                </label>
-                <input
-                  type="text"
-                  className="pm-input"
-                  value={chequeNo}
-                  onChange={(e) => setChequeNo(e.target.value)}
-                />
-              </div>
-              {paymentMethod === "Cheque" && (
-                <div className="pm-form-group">
-                  <label className="pm-label">Cheque Date</label>
-                  <input
-                    type="date"
-                    className="pm-input"
-                    value={chequeDate}
-                    onChange={(e) => setChequeDate(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="pm-dialog__form-row">
-              <div className="pm-form-group">
-                <label className="pm-label">Bank {requiresInstrument ? "*" : ""}</label>
-                <input
-                  type="text"
-                  className="pm-input"
-                  value={bank}
-                  onChange={(e) => setBank(e.target.value)}
-                />
-              </div>
-              <div className="pm-form-group">
-                <label className="pm-label">Branch Address</label>
-                <input
-                  type="text"
-                  className="pm-input"
-                  value={branchAddr}
-                  onChange={(e) => setBranchAddr(e.target.value)}
-                />
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="pm-form-group">
-          <label className="pm-label">Remarks</label>
-          <textarea
-            className="pm-textarea"
-            rows={2}
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-          />
-        </div>
-
-        {/* Notification and Payment Link Options */}
-        <div className="pm-recording-form__notifications">
-          <label className="pm-checkbox-label">
-            <input
-              type="checkbox"
-              checked={sendNotification}
-              onChange={(e) => setSendNotification(e.target.checked)}
-            />
-            <Bell className="w-4 h-4" />
-            Send receipt notification to student
-          </label>
-          <label className="pm-checkbox-label">
-            <input
-              type="checkbox"
-              checked={sendPaymentLink}
-              onChange={(e) => setSendPaymentLink(e.target.checked)}
-            />
-            <Send className="w-4 h-4" />
-            Send payment link for remaining balance
-          </label>
-        </div>
-
-        {/* Adhoc notice */}
-        {schedule.paymentType === "Adhoc" && (
-          <div className="pm-dialog__notice pm-dialog__notice--info">
-            For Adhoc payments, any remaining balance after this collection will automatically
-            become the next Adhoc installment. No new charge is added.
-          </div>
-        )}
-
-        <div className="pm-recording-form__actions">
-          <button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="pm-btn pm-btn--primary"
-            onClick={handleSave}
-            disabled={saving || !selectedInstallmentId || amountReceived <= 0}
-          >
-            <Save className="w-4 h-4" />
-            {saving ? "Recording..." : "Record Payment"}
-          </button>
-        </div>
-      </div>
-
-      <div className="pm-mock-notice">
-        Note: This is a MOCK payment recording. The data will not persist across page reloads.
-        A backend collection API is required for permanent storage.
+        <aside className="pm-recording-summary">
+          <div className="pm-recording-card__heading"><h3>PAYMENT SUMMARY</h3></div>
+          <label className="pm-form-group"><span className="pm-label">Receipt Date</span><span className="pm-date-input"><input type="date" value={receiptDate} onChange={(event) => setReceiptDate(event.target.value)} /><CalendarDays /></span></label>
+          <label className="pm-form-group"><span className="pm-label">Receipt Number</span><input className="pm-input" value={manualReceiptNo} onChange={(event) => setManualReceiptNo(event.target.value)} placeholder="Receipt number" /></label>
+          <div className="pm-recording-summary__group"><h4>COURSE FEES</h4><div><span>Amount</span><strong>{formatCurrency(courseFeesTotal)}</strong></div><div><span>Discount</span><strong>{formatCurrency(schedule.totalDiscount)}</strong></div><div><span>Tax</span><strong>{formatCurrency(schedule.totalTax)}</strong></div><div><span>Total</span><strong>{formatCurrency(courseFeesTotal)}</strong></div></div>
+          <div className="pm-recording-summary__group"><h4>OTHER FEES</h4><div><span>Selected</span><strong>{formatCurrency(selectedOtherFeesTotal)}</strong></div><div><span>Total</span><strong>{formatCurrency(selectedOtherFeesTotal)}</strong></div></div>
+          <div className="pm-recording-summary__total"><span>Total Payable</span><strong>{formatCurrency(round2(courseFeesTotal + selectedOtherFeesTotal))}</strong></div>
+          <label className="pm-checkbox-label"><input type="checkbox" checked={sendNotification} onChange={(event) => setSendNotification(event.target.checked)} />Send Notification on save</label>
+          <button type="button" className="pm-btn pm-btn--primary pm-recording-summary__save" onClick={handleSave} disabled={saving}><Save />{saving ? "Saving..." : "Save"}</button>
+          <div className="pm-recording-summary__actions"><button type="button" className="pm-btn pm-btn--warning" onClick={() => setSendPaymentLink(true)}><Link2 /> Send Payment Link</button><button type="button" className="pm-btn pm-btn--danger" onClick={onBack}>× Cancel</button></div>
+          {sendPaymentLink && <div className="pm-dialog__notice pm-dialog__notice--info"><button type="button" className="pm-btn pm-btn--primary pm-btn--sm" onClick={handleSave}><Send /> Confirm Send</button></div>}
+        </aside>
       </div>
     </div>
   );

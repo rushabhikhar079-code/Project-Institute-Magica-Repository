@@ -58,6 +58,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   const [selectedOtherFeeCodes, setSelectedOtherFeeCodes] = useState<number[]>([]);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [globalDiscount, setGlobalDiscount] = useState(0);
+  const [discountMode, setDiscountMode] = useState<"Amount" | "Percent">("Amount");
   const [remarks, setRemarks] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,9 +142,10 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
     return lines;
   }, [selectedCourseIds, selectedSubjectIds, selectedOtherFeeCodes, courses, subjects, otherFees]);
 
+  const basePayable = React.useMemo(() => calculateTotalPayable(feeLines), [feeLines]);
   const totalPayable = React.useMemo(
-    () => round2(Math.max(0, calculateTotalPayable(feeLines) - globalDiscount)),
-    [feeLines, globalDiscount],
+    () => round2(Math.max(0, basePayable - globalDiscount)),
+    [basePayable, globalDiscount],
   );
 
   // ─── Initialize / redistribute installments when fee lines or type changes ─
@@ -275,231 +277,68 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   };
 
   const hasFeeSelection = feeLines.length > 0;
+  const allSubjectIds = subjects.map((subject) => subject.subId);
+  const allCourseIds = courses.map((course) => course.courseId);
+  const allSelected = allSubjectIds.every((id) => selectedSubjectIds.includes(id)) && allCourseIds.every((id) => selectedCourseIds.includes(id));
 
-  // ─── Two-column XD layout: left = form sections, right = summary sidebar ──
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedSubjectIds([]);
+      setSelectedCourseIds([]);
+    } else {
+      setSelectedSubjectIds(allSubjectIds);
+      setSelectedCourseIds(allCourseIds);
+    }
+  };
+
+  const handleDiscountModeChange = (mode: "Amount" | "Percent") => {
+    setDiscountMode(mode);
+    setGlobalDiscount(0);
+  };
+
   return (
-    <div className="pm-page">
+    <div className="pm-page pm-schedule-payment-page">
       <div className="pm-page__header pm-page__header--back-only">
-        <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4" />
-          Back To List
-        </button>
+        <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}><ArrowLeft className="w-4 h-4" /> Back To List</button>
       </div>
+      {error && <SubjectSelectionAlert visible={true} message={error} onDismiss={() => setError(null)} />}
 
-      {error && (
-        <SubjectSelectionAlert
-          visible={true}
-          message={error}
-          onDismiss={() => setError(null)}
-        />
-      )}
-
-      <div className="pm-create-layout">
-        {/* ─── Left Column: Form Sections ─────────────────────────────── */}
-        <div className="pm-create-layout__main">
-          {/* ── Student Details ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Student Details</h3>
-            </div>
-            <div className="pm-form-section__body">
-              {student ? (
-                <div className="pm-student-selected">
-                  <div className="pm-student-selected__info">
-                    <span className="pm-text-semibold">{student.Name}</span>
-                    <span className="pm-text-muted">
-                      {student.RegNo_Manual || student.RegNo} | {student.PContact} | {student.CourseNames}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="pm-btn pm-btn--ghost pm-btn--sm"
-                    onClick={() => setShowStudentDialog(true)}
-                  >
-                    Change
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="pm-btn pm-btn--secondary"
-                  onClick={() => setShowStudentDialog(true)}
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Select Student
-                </button>
-              )}
-            </div>
+      <section className="pm-card pm-schedule-form-card">
+        <div className="pm-form-section__header"><h3 className="pm-form-section__title">STUDENT &amp; FEE DETAILS</h3></div>
+        <div className="pm-schedule-form-card__grid">
+          <div className="pm-schedule-form-card__fields">
+            <label className="pm-form-row pm-form-row--inline"><span className="pm-label">Student Name <i>*</i></span><input className="pm-input pm-input--readonly" readOnly value={student?.Name || ""} onClick={() => setShowStudentDialog(true)} /></label>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Payment Type</span><div className="pm-radio-row">{PAYMENT_TYPES.map((type) => <label key={type.value}><input type="radio" name="schedule-payment-type" checked={paymentType === type.value} onChange={() => setPaymentType(type.value)} /> {type.label}</label>)}</div></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Course Based Fees</span><strong>{formatCurrency(basePayable)}</strong></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Fee Discount</span><div className="pm-discount-control"><input className="pm-input" type="number" min="0" value={discountMode === "Percent" && basePayable > 0 ? round2((globalDiscount / basePayable) * 100) : globalDiscount} onChange={(event) => { const value = Number(event.target.value) || 0; setGlobalDiscount(discountMode === "Percent" ? round2(basePayable * value / 100) : value); }} /><label><input type="radio" checked={discountMode === "Amount"} onChange={() => handleDiscountModeChange("Amount")} /> Amount</label><label><input type="radio" checked={discountMode === "Percent"} onChange={() => handleDiscountModeChange("Percent")} /> Percent (%)</label></div></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Total Amount</span><input className="pm-input pm-input--readonly pm-schedule-total" readOnly value={formatCurrency(totalPayable)} /></div>
           </div>
-
-          {/* ── Payment Type ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Payment Type</h3>
-            </div>
-            <div className="pm-form-section__body">
-              <div className="pm-payment-type-grid">
-                {PAYMENT_TYPES.map((type) => (
-                  <label
-                    key={type.value}
-                    className={`pm-payment-type-card ${paymentType === type.value ? "pm-payment-type-card--selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentType"
-                      checked={paymentType === type.value}
-                      onChange={() => setPaymentType(type.value)}
-                    />
-                    <div className="pm-payment-type-card__content">
-                      <span className="pm-payment-type-card__label">{type.label}</span>
-                      <span className="pm-payment-type-card__desc">{type.description}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Course / Subject Fees ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Course / Subject Fees</h3>
-            </div>
-            <div className="pm-form-section__body">
-              <SubjectSelection
-                subjects={subjects}
-                courses={courses}
-                selectedSubjectIds={selectedSubjectIds}
-                selectedCourseIds={selectedCourseIds}
-                onToggleSubject={handleToggleSubject}
-                onToggleCourse={handleToggleCourse}
-              />
-            </div>
-          </div>
-
-          {/* ── Other Fees ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Other Fees</h3>
-            </div>
-            <div className="pm-form-section__body">
-              <ApplicableOtherFees
-                fees={otherFees}
-                selectedCodes={selectedOtherFeeCodes}
-                onToggle={handleToggleOtherFee}
-              />
-            </div>
-          </div>
-
-          {/* ── Discount ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Discount</h3>
-            </div>
-            <div className="pm-form-section__body">
-              <div className="pm-form-row">
-                <div className="pm-form-group">
-                  <label className="pm-label">Global Discount Amount</label>
-                  <input
-                    type="number"
-                    className="pm-input"
-                    step="0.01"
-                    min="0"
-                    value={globalDiscount}
-                    onChange={(e) => setGlobalDiscount(parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="pm-form-group">
-                  <label className="pm-label">Total After Discount</label>
-                  <input
-                    type="text"
-                    className="pm-input pm-input--readonly"
-                    readOnly
-                    value={formatCurrency(round2(totalPayable - globalDiscount))}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Installment Configuration (includes adjustment options) ── */}
-          {hasFeeSelection && (
-            <div className="pm-card pm-form-section">
-              <div className="pm-form-section__header">
-                <h3 className="pm-form-section__title">Installment Configuration</h3>
-              </div>
-              <div className="pm-form-section__body">
-                <InstallmentConfiguration
-                  installments={installments}
-                  totalPayable={totalPayable}
-                  onChange={setInstallments}
-                  paymentType={paymentType}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* ── Remarks ── */}
-          <div className="pm-card pm-form-section">
-            <div className="pm-form-section__header">
-              <h3 className="pm-form-section__title">Remarks</h3>
-            </div>
-            <div className="pm-form-section__body">
-              <textarea
-                className="pm-textarea"
-                rows={2}
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Optional remarks for this schedule..."
-              />
+          <div className="pm-schedule-subjects">
+            <div className="pm-schedule-subjects__heading"><span>Courses / Subjects <i>*</i></span><label><input type="checkbox" checked={allSelected} onChange={toggleAll} /> Select All</label></div>
+            <div className="pm-schedule-subjects__tree">
+              {courses.map((course) => <div key={course.courseId} className="pm-schedule-subjects__course"><label><input type="checkbox" checked={selectedCourseIds.includes(course.courseId)} onChange={() => handleToggleCourse(course.courseId)} /> {course.courseName} (Inc. Tax {formatCurrency(course.courseFees)})</label>{subjects.filter((subject) => subject.courseName === course.courseName).map((subject) => <label key={subject.subId} className="pm-schedule-subjects__subject"><input type="checkbox" checked={selectedSubjectIds.includes(subject.subId)} onChange={() => handleToggleSubject(subject.subId)} /> {subject.subName}</label>)}</div>)}
+              {courses.length === 0 && subjects.map((subject) => <label key={subject.subId} className="pm-schedule-subjects__subject"><input type="checkbox" checked={selectedSubjectIds.includes(subject.subId)} onChange={() => handleToggleSubject(subject.subId)} /> {subject.subName}</label>)}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* ─── Right Column: Payment Summary Sidebar ──────────────────── */}
-        <div className="pm-create-layout__sidebar">
-          {hasFeeSelection ? (
-            <PaymentSummaryPanel
-              feeLines={feeLines}
-              installments={installments}
-              globalDiscount={globalDiscount}
-            />
-          ) : (
-            <div className="pm-card pm-summary-panel">
-              <h4 className="pm-summary-panel__title">Payment Summary</h4>
-              <div className="pm-summary-panel__status">
-                <span className="pm-text-muted pm-text-sm">
-                  Select courses, subjects, or other fees to see the payment summary.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Save / Cancel actions in sidebar */}
-          <div className="pm-create-layout__actions">
-            <button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="pm-btn pm-btn--primary"
-              onClick={handleSave}
-              disabled={saving || !student || !hasFeeSelection}
-            >
-              <Save className="w-4 h-4" />
-              {saving ? "Saving..." : "Create Schedule"}
-            </button>
+      <section className="pm-card pm-schedule-form-card">
+        <div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT CONFIGURATION</h3></div>
+        <div className="pm-schedule-config-grid">
+          <div className="pm-schedule-config-fields">
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">No. Of Installments <i>*</i></span><input className="pm-input" type="number" min="1" max="5" value={installments.length || 3} onChange={(event) => { const count = Math.max(1, Math.min(5, Number(event.target.value) || 1)); const amounts = distributeEqually(totalPayable, count); setInstallments(amounts.map((amount, index) => ({ ...(installments[index] || { id: `inst-${Date.now()}-${index}`, installmentNo: index + 1, installmentName: `Installment ${index + 1}`, dueDate: "", discountAmount: 0, taxPercentage: 0, taxAmount: 0, paidAmount: 0, outstandingWithoutTax: amount, status: "Pending" as const, remarks: "" }), basicAmount: amount, netAmount: amount, outstandingAmount: amount, outstandingWithoutTax: amount }))); }} /><span>Maximum Installments <strong>5</strong></span></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Interval</span><select className="pm-select"><option>1 Month</option><option>3 Months</option></select></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Installment Start Date <i>*</i></span><input className="pm-input" type="date" /></div>
+            <button type="button" className="pm-btn pm-btn--primary" onClick={() => setInstallments(installments.length ? installments : distributeEqually(totalPayable, 3).map((amount, index) => ({ id: `manual-${index}`, installmentNo: index + 1, installmentName: `Name ${index + 1}`, dueDate: "", basicAmount: amount, discountAmount: 0, taxPercentage: 0, taxAmount: 0, netAmount: amount, paidAmount: 0, outstandingAmount: amount, outstandingWithoutTax: amount, status: "Pending", remarks: "" })))} disabled={!hasFeeSelection}>Create Installment Manually</button>
           </div>
+          <label className="pm-form-group pm-schedule-remarks"><span className="pm-label">Remarks</span><textarea className="pm-textarea" maxLength={2000} rows={5} value={remarks} onChange={(event) => setRemarks(event.target.value)} /><span className="pm-character-count">{remarks.length} / 2000</span></label>
         </div>
-      </div>
+      </section>
 
-      <SubjectSelectionDialog
-        open={showStudentDialog}
-        branchId={branchId}
-        onClose={() => setShowStudentDialog(false)}
-        onSelect={(s) => setStudent(s)}
-      />
+      {hasFeeSelection && <section className="pm-card pm-schedule-manual-card"><div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT DETAILS</h3></div><InstallmentConfiguration installments={installments} totalPayable={totalPayable} onChange={setInstallments} paymentType={paymentType} /></section>}
+      <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>Cancel</button><button type="button" className="pm-btn pm-btn--warning" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save</button><button type="button" className="pm-btn pm-btn--primary" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save &amp; Pay</button></div>
+      <SubjectSelectionDialog open={showStudentDialog} branchId={branchId} onClose={() => setShowStudentDialog(false)} onSelect={(selected) => setStudent(selected)} />
     </div>
   );
 };

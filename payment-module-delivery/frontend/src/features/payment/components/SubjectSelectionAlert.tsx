@@ -1,8 +1,5 @@
-// ─── Subject Selection Alert Component (XD Screen 8) ───────────────────────────
-// Displays a visible XD-style validation alert when subject selection
-// is required but missing or invalid. Shows inline above the form area.
 import React from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { ArrowRight, Info, X } from "lucide-react";
 
 interface SubjectSelectionAlertProps {
   visible: boolean;
@@ -18,24 +15,20 @@ export const SubjectSelectionAlert: React.FC<SubjectSelectionAlertProps> = ({
   if (!visible) return null;
 
   return (
-    <div className="pm-validation-alert" role="alert" aria-live="polite">
-      <div className="pm-validation-alert__icon">
-        <AlertTriangle className="w-5 h-5" />
-      </div>
-      <div className="pm-validation-alert__content">
-        <span className="pm-validation-alert__title">Validation Required</span>
-        <span className="pm-validation-alert__message">{message}</span>
-      </div>
-      {onDismiss && (
-        <button
-          type="button"
-          className="pm-validation-alert__close"
-          onClick={onDismiss}
-          title="Dismiss"
-        >
-          <X className="w-4 h-4" />
+    <div className="pm-validation-overlay" role="alertdialog" aria-modal="true" aria-label="Validation message">
+      <div className="pm-validation-dialog">
+        <button type="button" className="pm-validation-dialog__close" onClick={onDismiss} aria-label="Close">
+          <X />
         </button>
-      )}
+        <div className="pm-validation-dialog__icon"><Info /></div>
+        <div className="pm-validation-dialog__content">
+          <strong>institutemagica.com says</strong>
+          <span>{message}</span>
+        </div>
+        <button type="button" className="pm-btn pm-btn--primary pm-validation-dialog__ok" onClick={onDismiss}>
+          Ok <ArrowRight />
+        </button>
+      </div>
     </div>
   );
 };
