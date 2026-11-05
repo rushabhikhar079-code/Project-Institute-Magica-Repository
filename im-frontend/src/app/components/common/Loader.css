@@ -1,0 +1,76 @@
+/* From Uiverse.io by Nawsome */
+/* Fullscreen Overlay */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Blur + dim background */
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  /* Prevent clicking behind the loader */
+  pointer-events: all;
+}
+/* From Uiverse.io by Satwinder04 */
+.loader3 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bars {
+  width: 10px;
+  height: 20px;
+  margin: 0 2px;
+  border-radius: 4px;
+  background-color: #0f4c81;
+  animation: loader3 0.6s ease-in-out infinite;
+}
+
+.bar1 {
+  animation-delay: -0.45s;
+}
+.bar2 {
+  animation-delay: -0.4s;
+}
+.bar3 {
+  animation-delay: -0.35s;
+}
+.bar4 {
+  animation-delay: -0.3s;
+}
+.bar5 {
+  animation-delay: -0.25s;
+}
+.bar6 {
+  animation-delay: -0.2s;
+}
+.bar7 {
+  animation-delay: -0.15s;
+}
+.bar8 {
+  animation-delay: -0.1s;
+}
+.bar9 {
+  animation-delay: -0.05s;
+}
+.bar10 {
+  animation-delay: 0s;
+}
+
+@keyframes loader3 {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(2.3);
+  }
+}
