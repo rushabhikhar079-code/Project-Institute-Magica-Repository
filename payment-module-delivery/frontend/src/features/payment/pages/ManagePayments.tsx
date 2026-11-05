@@ -1,7 +1,7 @@
 // ─── Manage Payments Page ──────────────────────────────────────────────────────
 // Main dashboard showing summary cards and schedule list with search/filter.
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PaymentSchedule, PaymentSearchRequest } from "../paymentTypes";
 import { getSchedulesMock, cancelScheduleMock } from "../paymentService";
 import { PaymentSummaryCards } from "../components/PaymentSummaryCards";
@@ -79,10 +79,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     onNavigate("payment/edit-installments", { scheduleId: schedule.id });
   };
 
-  const handlePay = (schedule: PaymentSchedule) => {
-    onNavigate("payment/record-payment", { scheduleId: schedule.id });
-  };
-
   const handleRecordPayment = (schedule: PaymentSchedule) => {
     onNavigate("payment/record-payment", { scheduleId: schedule.id });
   };
@@ -97,11 +93,15 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     fetchSchedules();
   };
 
-  // Summary totals
   const totalPayable = round2(schedules.reduce((s, sch) => s + sch.totalPayable, 0));
   const totalPaid = round2(schedules.reduce((s, sch) => s + sch.totalPaid, 0));
   const totalOutstanding = round2(schedules.reduce((s, sch) => s + sch.totalOutstanding, 0));
   const activeCount = schedules.filter((s) => s.status === "Active").length;
+  const pageCount = Math.max(1, Math.ceil(totalCount / searchRequest.pageSize));
+
+  const handlePageChange = (pageNumber: number) => {
+    setSearchRequest((current) => ({ ...current, pageNumber }));
+  };
 
   const columns = getScheduleColumns({
     onView: handleView,
@@ -110,7 +110,7 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     onSendLink: handleSendLink,
     onCancel: handleCancel,
     onSchedule: handleSchedule,
-    onPay: handlePay,
+    onPay: handleRecordPayment,
   });
 
   return (
@@ -118,17 +118,11 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
       <div className="pm-page__header">
         <div>
           <h1 className="pm-page__title">Manage Payments</h1>
-          <p className="pm-page__subtitle">View and manage all payment schedules</p>
+          <p className="pm-page__subtitle">Manage student fee schedules and Payments</p>
         </div>
-        <button
-          type="button"
-          className="pm-btn pm-btn--primary"
-          onClick={() => onNavigate("payment/create-schedule")}
-        >
-          <Plus className="w-4 h-4" />
-          Create Schedule
-        </button>
       </div>
+
+      <PaymentSearchFilters onSearch={handleSearch} onReset={handleReset} branchId={branchId} />
 
       <PaymentSummaryCards
         totalPayable={totalPayable}
@@ -136,8 +130,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
         totalOutstanding={totalOutstanding}
         activeSchedules={activeCount}
       />
-
-      <PaymentSearchFilters onSearch={handleSearch} onReset={handleReset} branchId={branchId} />
 
       <div className="pm-card pm-data-table-card">
         {loading ? (
@@ -174,8 +166,16 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
           </table>
         )}
         {totalCount > 0 && (
-          <div className="pm-pagination">
-            <span className="pm-pagination__info">{totalCount} schedule(s) found</span>
+          <div className="pm-pagination pm-pagination--manage">
+            <span className="pm-pagination__info">Showing 1–{Math.min(searchRequest.pageSize, totalCount)} of {totalCount} sample records</span>
+            <div className="pm-pagination__controls">
+              <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber === 1} onClick={() => handlePageChange(1)}>First</button>
+              <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber === 1} onClick={() => handlePageChange(searchRequest.pageNumber - 1)}><ChevronLeft className="w-4 h-4" />Previous</button>
+              <span className="pm-pagination__current">{searchRequest.pageNumber}</span>
+              <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber >= pageCount} onClick={() => handlePageChange(searchRequest.pageNumber + 1)}>Next<ChevronRight className="w-4 h-4" /></button>
+              <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber >= pageCount} onClick={() => handlePageChange(pageCount)}>Last</button>
+              <span className="pm-pagination__size">Page Size <select className="pm-select pm-select--pagination" value={searchRequest.pageSize} onChange={(event) => setSearchRequest((current) => ({ ...current, pageSize: Number(event.target.value), pageNumber: 1 }))}><option value={10}>10</option><option value={25}>25</option></select></span>
+            </div>
           </div>
         )}
       </div>

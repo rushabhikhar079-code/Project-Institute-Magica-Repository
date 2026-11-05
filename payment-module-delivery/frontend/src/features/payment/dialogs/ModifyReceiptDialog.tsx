@@ -1,7 +1,5 @@
-// ─── Modify Receipt Dialog (XD Screen 12) ──────────────────────────────────────
-// Edits receipt metadata. Displays Student Name and Receipt Date (read-only).
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { CalendarDays, FilePenLine, X } from "lucide-react";
 import type { PaymentReceipt } from "../paymentTypes";
 import { formatCurrency } from "../paymentCalculations";
 
@@ -18,158 +16,45 @@ export const ModifyReceiptDialog: React.FC<ModifyReceiptDialogProps> = ({
   onClose,
   onSave,
 }) => {
-  const [manualReceiptNo, setManualReceiptNo] = useState("");
-  const [chequeNo, setChequeNo] = useState("");
-  const [chequeDate, setChequeDate] = useState("");
-  const [bank, setBank] = useState("");
-  const [branchAddr, setBranchAddr] = useState("");
+  const [receiptDate, setReceiptDate] = useState("");
+  const [receiptNo, setReceiptNo] = useState("");
   const [remarks, setRemarks] = useState("");
 
   useEffect(() => {
     if (receipt) {
-      setManualReceiptNo(receipt.manualReceiptNo || "");
-      setChequeNo(receipt.chequeNo || "");
-      setChequeDate(receipt.chequeDate ? receipt.chequeDate.split("/").reverse().join("-") : "");
-      setBank(receipt.bank || "");
-      setBranchAddr(receipt.branchAddr || "");
+      setReceiptDate(receipt.receiptDate ? receipt.receiptDate.split("/").reverse().join("-") : "");
+      setReceiptNo(receipt.manualReceiptNo || receipt.receiptNo);
       setRemarks(receipt.remarks || "");
     }
   }, [receipt]);
 
   if (!open || !receipt) return null;
 
-  const requiresInstrument = receipt.paymentMethod === "Cheque" || receipt.paymentMethod === "BankTransfer";
-
   const handleSave = () => {
     onSave({
-      manualReceiptNo,
-      chequeNo,
-      chequeDate: chequeDate ? new Date(chequeDate).toLocaleDateString("en-GB") : "",
-      bank,
-      branchAddr,
+      receiptDate: receiptDate ? new Date(receiptDate).toLocaleDateString("en-GB") : receipt.receiptDate,
+      manualReceiptNo: receiptNo,
       remarks,
     });
   };
 
   return (
     <div className="pm-dialog-overlay" onClick={onClose}>
-      <div className="pm-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="pm-dialog pm-dialog--receipt" onClick={(event) => event.stopPropagation()}>
         <div className="pm-dialog__header">
-          <h3 className="pm-dialog__title">Modify Receipt Details</h3>
-          <button type="button" className="pm-dialog__close" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </button>
+          <div className="pm-dialog__heading"><FilePenLine className="w-5 h-5" /><h3 className="pm-dialog__title">Modify Payment Receipt Details</h3></div>
+          <button type="button" className="pm-dialog__close" onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
-
-        <div className="pm-dialog__body">
-          <div className="pm-dialog__info-grid">
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Student Name</span>
-              <span className="pm-text-semibold">{receipt.studentName || "-"}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Receipt No.</span>
-              <span className="pm-text-semibold">{receipt.receiptNo}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Receipt Date</span>
-              <span className="pm-text-semibold">{receipt.receiptDate || receipt.payDate}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Installment</span>
-              <span className="pm-text-semibold">{receipt.installmentName || "-"}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Amount</span>
-              <span className="pm-text-semibold">{formatCurrency(receipt.amount)}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Method</span>
-              <span className="pm-text-semibold">{receipt.paymentMethod}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Pay Date</span>
-              <span className="pm-text-semibold">{receipt.payDate}</span>
-            </div>
-            <div className="pm-dialog__info-item">
-              <span className="pm-label">Collected By</span>
-              <span className="pm-text-semibold">{receipt.collectedBy || "-"}</span>
-            </div>
-          </div>
-
-          <div className="pm-form-group">
-            <label className="pm-label">Manual Receipt No.</label>
-            <input
-              type="text"
-              className="pm-input"
-              value={manualReceiptNo}
-              onChange={(e) => setManualReceiptNo(e.target.value)}
-            />
-          </div>
-
-          {requiresInstrument && (
-            <>
-              <div className="pm-dialog__form-row">
-                <div className="pm-form-group">
-                  <label className="pm-label">Cheque / Transaction No.</label>
-                  <input
-                    type="text"
-                    className="pm-input"
-                    value={chequeNo}
-                    onChange={(e) => setChequeNo(e.target.value)}
-                  />
-                </div>
-                <div className="pm-form-group">
-                  <label className="pm-label">Cheque Date</label>
-                  <input
-                    type="date"
-                    className="pm-input"
-                    value={chequeDate}
-                    onChange={(e) => setChequeDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="pm-dialog__form-row">
-                <div className="pm-form-group">
-                  <label className="pm-label">Bank</label>
-                  <input
-                    type="text"
-                    className="pm-input"
-                    value={bank}
-                    onChange={(e) => setBank(e.target.value)}
-                  />
-                </div>
-                <div className="pm-form-group">
-                  <label className="pm-label">Branch Address</label>
-                  <input
-                    type="text"
-                    className="pm-input"
-                    value={branchAddr}
-                    onChange={(e) => setBranchAddr(e.target.value)}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="pm-form-group">
-            <label className="pm-label">Remarks</label>
-            <textarea
-              className="pm-textarea"
-              rows={2}
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-            />
-          </div>
+        <div className="pm-dialog__body pm-receipt-dialog__body">
+          <div className="pm-receipt-dialog__row"><span>Student Name</span><b>:</b><strong>{receipt.studentName || "-"}</strong></div>
+          <div className="pm-receipt-dialog__row"><span>Receipt Date</span><b>:</b><label className="pm-date-input"><input type="date" value={receiptDate} onChange={(event) => setReceiptDate(event.target.value)} /><CalendarDays /></label></div>
+          <div className="pm-receipt-dialog__row"><span>Paid Amount</span><b>:</b><strong className="pm-text-primary">{formatCurrency(receipt.amount)}</strong></div>
+          <div className="pm-receipt-dialog__row"><span>Receipt No.</span><b>:</b><input className="pm-input" value={receiptNo} onChange={(event) => setReceiptNo(event.target.value)} /></div>
+          <div className="pm-receipt-dialog__row pm-receipt-dialog__row--remarks"><span>Remarks</span><b>:</b><textarea className="pm-textarea" rows={2} value={remarks} onChange={(event) => setRemarks(event.target.value)} /></div>
         </div>
-
         <div className="pm-dialog__footer">
-          <button type="button" className="pm-btn pm-btn--secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className="pm-btn pm-btn--primary" onClick={handleSave}>
-            Save Changes
-          </button>
+          <button type="button" className="pm-btn pm-btn--secondary" onClick={onClose}>Cancel</button>
+          <button type="button" className="pm-btn pm-btn--primary" onClick={handleSave}>Ok</button>
         </div>
       </div>
     </div>

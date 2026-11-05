@@ -1,216 +1,178 @@
-/* ─── Preview Shell Styles (preview only, not part of delivery SCSS) ─────────── */
-
 .preview-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--pm-neutral-100);
+  background: #eef4fb;
+  color: #172033;
+  font-family: "Nunito Sans", "Segoe UI", sans-serif;
 }
 
-/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
 .preview-sidebar {
-  width: 260px;
-  background: var(--pm-brand);
+  width: 245px;
+  min-height: 100vh;
+  background: #125487;
   color: #fff;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  flex: 0 0 245px;
   overflow-y: auto;
 }
 
-.preview-sidebar__brand {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.preview-sidebar__logo {
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
+.preview-sidebar__menu {
+  display: block;
+  padding: 22px 13px 18px;
   color: #fff;
-}
-
-.preview-sidebar__brand-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.preview-sidebar__brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.preview-sidebar__brand-sub {
-  font-size: 11px;
-  opacity: 0.7;
-  line-height: 1.2;
-  margin-top: 2px;
+  font-size: 16px;
+  line-height: 1;
+  text-decoration: underline;
 }
 
 .preview-sidebar__nav {
-  flex: 1;
-  padding: 16px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  padding: 6px 12px 0;
 }
 
-.preview-sidebar__section-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.5;
-  padding: 12px 24px 6px;
-  font-weight: 600;
-}
-
-.preview-sidebar__link {
+.preview-sidebar__parent,
+.preview-sidebar__child {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 24px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  width: 100%;
+  gap: 12px;
+  border: 0;
+  color: #fff;
   text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
-.preview-sidebar__link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+.preview-sidebar__parent {
+  min-height: 38px;
+  padding: 0 10px;
+  background: #2999d1;
+  font-size: 14px;
 }
 
-.preview-sidebar__link--active {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font-weight: 600;
+.preview-sidebar__parent svg,
+.preview-sidebar__child svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  stroke-width: 1.8;
 }
 
-.preview-sidebar__link-icon {
-  flex-shrink: 0;
+.preview-sidebar__chevron {
+  margin-left: auto;
+  font-size: 16px;
 }
 
-/* ─── Main Content Area ───────────────────────────────────────────────────── */
+.preview-sidebar__children {
+  position: relative;
+  margin-left: 18px;
+  padding: 8px 0 26px;
+}
+
+.preview-sidebar__children::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.preview-sidebar__child {
+  min-height: 41px;
+  padding: 0 10px;
+  background: transparent;
+  font-size: 14px;
+}
+
+.preview-sidebar__child:hover,
+.preview-sidebar__child--active {
+  background: #2999d1;
+}
+
 .preview-main {
+  min-width: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .preview-topbar {
-  background: #fff;
-  border-bottom: 1px solid var(--pm-neutral-200);
-  padding: 12px 24px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  padding: 0 50px 0 31px;
+  background: #fff;
+  box-shadow: 0 4px 13px rgba(39, 57, 82, 0.15);
+  z-index: 2;
 }
 
 .preview-topbar__title {
+  color: #172033;
   font-size: 16px;
-  font-weight: 700;
-  color: var(--pm-neutral-900);
+  font-weight: 800;
+  text-decoration: underline;
 }
 
-.preview-topbar__badge {
-  background: var(--pm-warning-light);
-  color: var(--pm-warning);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--pm-warning);
+.preview-topbar__bell {
+  width: 20px;
+  height: 20px;
+  color: #172033;
+  stroke-width: 2.4;
 }
 
-.preview-topbar__user {
+.preview-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 15px 31px 0;
+  color: #293448;
   font-size: 13px;
-  color: var(--pm-neutral-600);
 }
 
-.preview-topbar__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--pm-brand);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+.preview-breadcrumb strong {
+  color: #125487;
+}
+
+.preview-alert-wrap {
+  padding: 16px 31px 0;
 }
 
 .preview-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 0;
+  min-width: 0;
 }
 
-/* ─── Preview Banner ──────────────────────────────────────────────────────── */
-.preview-banner {
-  background: #fef3c7;
-  border-bottom: 1px solid #f59e0b;
-  padding: 8px 24px;
-  font-size: 12px;
-  color: #92400e;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* ─── Dialog Showcase Toggle ───────────────────────────────────────────────── */
-.preview-dialog-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 12px 24px;
-  background: #fff;
-  border-bottom: 1px solid var(--pm-neutral-200);
-}
-
-.preview-dialog-bar__label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--pm-neutral-500);
-  margin-right: 8px;
-  align-self: center;
-}
-
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .preview-sidebar {
     width: 60px;
+    flex-basis: 60px;
   }
-  .preview-sidebar__brand-text,
-  .preview-sidebar__section-label,
-  .preview-sidebar__link span {
+
+  .preview-sidebar__menu {
+    padding-left: 8px;
+    font-size: 11px;
+  }
+
+  .preview-sidebar__parent,
+  .preview-sidebar__child {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .preview-sidebar__parent span,
+  .preview-sidebar__child span,
+  .preview-sidebar__chevron {
     display: none;
   }
-  .preview-sidebar__link {
-    justify-content: center;
-    padding: 12px;
+
+  .preview-sidebar__children {
+    margin-left: 0;
+  }
+
+  .preview-topbar {
+    padding-inline: 20px;
+  }
+
+  .preview-breadcrumb {
+    padding-inline: 20px;
   }
 }

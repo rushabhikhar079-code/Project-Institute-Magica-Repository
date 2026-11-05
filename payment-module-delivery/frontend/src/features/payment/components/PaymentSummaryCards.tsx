@@ -1,6 +1,5 @@
-// ─── Payment Summary Cards Component ───────────────────────────────────────────
 import React from "react";
-import { Wallet, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
+import { CalendarDays, Check, Clock3, Plus } from "lucide-react";
 import { formatCurrency } from "../paymentCalculations";
 
 interface PaymentSummaryCardsProps {
@@ -14,21 +13,16 @@ interface SummaryCardProps {
   label: string;
   value: string;
   icon: React.ReactNode;
-  color: string;
-  bgColor: string;
+  className: string;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, icon, color, bgColor }) => (
-  <div className="pm-card pm-summary-card">
-    <div className="pm-summary-card__icon" style={{ backgroundColor: bgColor, color }}>
-      {icon}
-    </div>
-    <div className="pm-summary-card__content">
+const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, icon, className }) => (
+  <div className={`pm-card pm-summary-card ${className}`}>
+    <span className="pm-summary-card__icon">{icon}</span>
+    <span className="pm-summary-card__content">
       <span className="pm-summary-card__label">{label}</span>
-      <span className="pm-summary-card__value" style={{ color }}>
-        {value}
-      </span>
-    </div>
+      <span className="pm-summary-card__value">{value}</span>
+    </span>
   </div>
 );
 
@@ -37,37 +31,11 @@ export const PaymentSummaryCards: React.FC<PaymentSummaryCardsProps> = ({
   totalPaid,
   totalOutstanding,
   activeSchedules,
-}) => {
-  return (
-    <div className="pm-summary-cards">
-      <SummaryCard
-        label="Total Payable"
-        value={formatCurrency(totalPayable)}
-        icon={<Wallet className="w-5 h-5" />}
-        color="#0F4C81"
-        bgColor="#e0eef5"
-      />
-      <SummaryCard
-        label="Total Collected"
-        value={formatCurrency(totalPaid)}
-        icon={<CheckCircle className="w-5 h-5" />}
-        color="#16a34a"
-        bgColor="#dcfce7"
-      />
-      <SummaryCard
-        label="Outstanding"
-        value={formatCurrency(totalOutstanding)}
-        icon={<AlertCircle className="w-5 h-5" />}
-        color="#dc2626"
-        bgColor="#fee2e2"
-      />
-      <SummaryCard
-        label="Active Schedules"
-        value={String(activeSchedules)}
-        icon={<TrendingUp className="w-5 h-5" />}
-        color="#f59e0b"
-        bgColor="#fef3c7"
-      />
-    </div>
-  );
-};
+}) => (
+  <div className="pm-summary-cards">
+    <SummaryCard label="Total Schedules" value={String(activeSchedules)} icon={<CalendarDays />} className="pm-summary-card--schedules" />
+    <SummaryCard label="Total Fees" value={formatCurrency(totalPayable)} icon={<Plus />} className="pm-summary-card--fees" />
+    <SummaryCard label="Total Paid" value={formatCurrency(totalPaid)} icon={<Check />} className="pm-summary-card--paid" />
+    <SummaryCard label="Outstanding Balance" value={formatCurrency(totalOutstanding)} icon={<Clock3 />} className="pm-summary-card--outstanding" />
+  </div>
+);

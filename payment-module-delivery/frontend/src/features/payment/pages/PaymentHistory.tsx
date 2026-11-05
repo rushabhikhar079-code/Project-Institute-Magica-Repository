@@ -1,8 +1,5 @@
-// ─── Payment History Page (XD Screen 5) ──────────────────────────────────────
-// Shows all receipts/collections across all schedules, with filtering by
-// date range, receipt number, reference number, payment method, and remarks.
 import React, { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Edit, Search } from "lucide-react";
+import { Download, Edit, RefreshCw, Search, Trash2 } from "lucide-react";
 import type { PaymentSchedule, PaymentReceipt } from "../paymentTypes";
 import { getSchedulesMock, getReceiptsByScheduleMock, updateReceiptMock } from "../paymentService";
 import { formatCurrency, round2 } from "../paymentCalculations";
@@ -13,18 +10,19 @@ interface PaymentHistoryProps {
   onBack: () => void;
 }
 
-export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack }) => {
-  const [allReceipts, setAllReceipts] = useState<{ receipt: PaymentReceipt; schedule: PaymentSchedule }[]>([]);
+interface ReceiptRow {
+  receipt: PaymentReceipt;
+  schedule: PaymentSchedule;
+}
+
+export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId }) => {
+  const [allReceipts, setAllReceipts] = useState<ReceiptRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [modifyReceipt, setModifyReceipt] = useState<PaymentReceipt | null>(null);
-
-  // Filters
-  const [filterMethod, setFilterMethod] = useState<string>("");
-  const [filterReceiptNo, setFilterReceiptNo] = useState<string>("");
-  const [filterReferenceNo, setFilterReferenceNo] = useState<string>("");
-  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
-  const [filterDateTo, setFilterDateTo] = useState<string>("");
-  const [filterStudentName, setFilterStudentName] = useState<string>("");
+  const [filterStudentName, setFilterStudentName] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterMethod, setFilterMethod] = useState("");
 
   const fetchAllReceipts = useCallback(async () => {
     setLoading(true);
@@ -40,16 +38,12 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
         sortBy: null,
         sortDirection: null,
       });
-      const receiptMap: { receipt: PaymentReceipt; schedule: PaymentSchedule }[] = [];
+      const rows: ReceiptRow[] = [];
       for (const schedule of response.items) {
         const receipts = await getReceiptsByScheduleMock(schedule.id);
-        receipts.forEach((receipt) => {
-          receiptMap.push({ receipt, schedule });
-        });
+        receipts.forEach((receipt) => rows.push({ receipt, schedule }));
       }
-      setAllReceipts(receiptMap);
-    } catch {
-      setAllReceipts([]);
+      setAllReceipts(rows);
     } finally {
       setLoading(false);
     }
@@ -66,126 +60,66 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
     fetchAllReceipts();
   };
 
-  const handleResetFilters = () => {
-    setFilterMethod("");
-    setFilterReceiptNo("");
-    setFilterReferenceNo("");
+  const handleReset = () => {
+    setFilterStudentName("");
     setFilterDateFrom("");
     setFilterDateTo("");
-    setFilterStudentName("");
+    setFilterMethod("");
   };
 
-  // Parse dd/MM/yyyy to a comparable date string
-  const parseDate = (dateStr: string): string => {
-    if (!dateStr) return "";
-    const parts = dateStr.split("/");
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-    }
-    return dateStr;
+  const parseDate = (dateString: string): string => {
+    const parts = dateString.split("/");
+    return parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}` : dateString;
   };
 
   const filteredReceipts = allReceipts.filter(({ receipt, schedule }) => {
     if (filterMethod && receipt.paymentMethod !== filterMethod) return false;
-    if (filterReceiptNo) {
-      const matchReceipt =
-        receipt.receiptNo.toLowerCase().includes(filterReceiptNo.toLowerCase()) ||
-        receipt.manualReceiptNo.toLowerCase().includes(filterReceiptNo.toLowerCase());
-      if (!matchReceipt) return false;
-    }
-    if (filterReferenceNo) {
-      const matchRef =
-        receipt.chequeNo.toLowerCase().includes(filterReferenceNo.toLowerCase()) ||
-        receipt.bank.toLowerCase().includes(filterReferenceNo.toLowerCase());
-      if (!matchRef) return false;
-    }
-    if (filterStudentName) {
-      if (!schedule.studentName.toLowerCase().includes(filterStudentName.toLowerCase())) return false;
-    }
-    if (filterDateFrom) {
-      const receiptDate = parseDate(receipt.payDate);
-      const fromDate = filterDateFrom;
-      if (receiptDate < fromDate) return false;
-    }
-    if (filterDateTo) {
-      const receiptDate = parseDate(receipt.payDate);
-      const toDate = filterDateTo;
-      if (receiptDate > toDate) return false;
-    }
+    if (filterStudentName && !schedule.studentName.toLowerCase().includes(filterStudentName.toLowerCase())) return false;
+    const paymentDate = parseDate(receipt.payDate);
+    if (filterDateFrom && paymentDate < filterDateFrom) return false;
+    if (filterDateTo && paymentDate > filterDateTo) return false;
     return true;
   });
 
-  const totalCollected = round2(filteredReceipts.reduce((s, r) => s + r.receipt.amount, 0));
+  const totalCollected = round2(filteredReceipts.reduce((total, row) => total + row.receipt.amount, 0));
+
+  const handleDelete = (receiptId: string) => {
+    if (!window.confirm("Delete this mock receipt?")) return;
+    setAllReceipts((rows) => rows.filter(({ receipt }) => receipt.id !== receiptId));
+  };
 
   if (loading) {
     return <div className="pm-page"><div className="pm-loading">Loading payment history...</div></div>;
   }
 
   return (
-    <div className="pm-page">
+    <div className="pm-page pm-history-page">
       <div className="pm-page__header">
-        <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-        <h1 className="pm-page__title">Payment History</h1>
-      </div>
-
-      <div className="pm-summary-cards">
-        <div className="pm-card pm-summary-card">
-          <div className="pm-summary-card__content">
-            <span className="pm-summary-card__label">Total Collections</span>
-            <span className="pm-summary-card__value pm-text-success">{formatCurrency(totalCollected)}</span>
-          </div>
-        </div>
-        <div className="pm-card pm-summary-card">
-          <div className="pm-summary-card__content">
-            <span className="pm-summary-card__label">Total Receipts</span>
-            <span className="pm-summary-card__value">{filteredReceipts.length}</span>
-          </div>
+        <div>
+          <h1 className="pm-page__title">Payment History</h1>
+          <p className="pm-page__subtitle">Showing transactions for Rushabh - REG-2026-0101</p>
         </div>
       </div>
 
-      <div className="pm-card pm-filter-bar">
-        <div className="pm-filter-bar__row">
+      <section className="pm-card pm-history-filter">
+        <div className="pm-history-filter__title">FIND STUDENTS</div>
+        <div className="pm-history-filter__grid">
           <div className="pm-form-group">
-            <label className="pm-label">Student Name</label>
-            <input
-              type="text"
-              className="pm-input"
-              placeholder="Search student..."
-              value={filterStudentName}
-              onChange={(e) => setFilterStudentName(e.target.value)}
-            />
+            <label className="pm-label">Student name</label>
+            <div className="pm-input-with-icon"><input className="pm-input" placeholder="e.g .Rushabh" value={filterStudentName} onChange={(event) => setFilterStudentName(event.target.value)} /><Search /></div>
           </div>
           <div className="pm-form-group">
-            <label className="pm-label">Receipt No.</label>
-            <input
-              type="text"
-              className="pm-input"
-              placeholder="Search receipt no..."
-              value={filterReceiptNo}
-              onChange={(e) => setFilterReceiptNo(e.target.value)}
-            />
+            <label className="pm-label">From</label>
+            <input type="date" className="pm-input" value={filterDateFrom} onChange={(event) => setFilterDateFrom(event.target.value)} />
           </div>
           <div className="pm-form-group">
-            <label className="pm-label">Reference No.</label>
-            <input
-              type="text"
-              className="pm-input"
-              placeholder="Cheque no / bank ref..."
-              value={filterReferenceNo}
-              onChange={(e) => setFilterReferenceNo(e.target.value)}
-            />
+            <label className="pm-label">To</label>
+            <input type="date" className="pm-input" value={filterDateTo} onChange={(event) => setFilterDateTo(event.target.value)} />
           </div>
           <div className="pm-form-group">
-            <label className="pm-label">Payment Method</label>
-            <select
-              className="pm-select"
-              value={filterMethod}
-              onChange={(e) => setFilterMethod(e.target.value)}
-            >
-              <option value="">All Methods</option>
+            <label className="pm-label">Payment Mode</label>
+            <select className="pm-select" value={filterMethod} onChange={(event) => setFilterMethod(event.target.value)}>
+              <option value="">All</option>
               <option value="Cash">Cash</option>
               <option value="Cheque">Cheque</option>
               <option value="UPI">UPI</option>
@@ -194,101 +128,62 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId, onBack
               <option value="Online">Online</option>
             </select>
           </div>
-        </div>
-        <div className="pm-filter-bar__row">
-          <div className="pm-form-group">
-            <label className="pm-label">Date From</label>
-            <input
-              type="date"
-              className="pm-input"
-              value={filterDateFrom}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-            />
-          </div>
-          <div className="pm-form-group">
-            <label className="pm-label">Date To</label>
-            <input
-              type="date"
-              className="pm-input"
-              value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-            />
-          </div>
-          <div className="pm-form-group pm-filter-bar__actions">
-            <button type="button" className="pm-btn pm-btn--ghost" onClick={handleResetFilters}>
-              <Search className="w-4 h-4" />
-              Reset Filters
-            </button>
+          <div className="pm-history-filter__actions">
+            <button type="button" className="pm-btn pm-btn--secondary" onClick={handleReset}><RefreshCw className="w-4 h-4" />Reset</button>
+            <button type="button" className="pm-btn pm-btn--primary"><Search className="w-4 h-4" />Search</button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="pm-card pm-data-table-card">
-        {filteredReceipts.length === 0 ? (
-          <div className="pm-empty-state">
-            <p className="pm-empty-state__text">No payment receipts found matching the filters.</p>
-          </div>
-        ) : (
+      <section className="pm-card pm-history-table-card">
+        <div className="pm-history-table__summary">{filteredReceipts.length} Transaction(s) · Total <strong>{formatCurrency(totalCollected)}</strong></div>
+        <div className="pm-history-table__scroll">
           <table className="pm-table">
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Reg. No.</th>
-                <th>Receipt No.</th>
+                <th>Receipt/Reference</th>
+                <th>Student Name</th>
+                <th>Payment Date</th>
+                <th>Payment Mode</th>
+                <th>Amount</th>
+                <th>Installment Name</th>
                 <th>Installment</th>
-                <th>Method</th>
-                <th className="pm-text-right">Amount</th>
-                <th>Pay Date</th>
-                <th>Receipt Date</th>
-                <th>Bank</th>
                 <th>Remarks</th>
-                <th>Collected By</th>
-                <th style={{ width: "80px" }}>Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReceipts.map(({ receipt, schedule }) => (
-                <tr key={receipt.id}>
-                  <td className="pm-text-semibold">{receipt.studentName || schedule.studentName}</td>
-                  <td>{schedule.studentRegNo}</td>
-                  <td>{receipt.manualReceiptNo || receipt.receiptNo}</td>
-                  <td>{receipt.installmentName || "-"}</td>
-                  <td>{receipt.paymentMethod}</td>
-                  <td className="pm-text-right pm-text-success pm-text-semibold">
-                    {formatCurrency(receipt.amount)}
-                  </td>
-                  <td>{receipt.payDate}</td>
-                  <td>{receipt.receiptDate || "-"}</td>
-                  <td>{receipt.bank || "-"}</td>
-                  <td>{receipt.remarks || "-"}</td>
-                  <td>{receipt.collectedBy || "-"}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="pm-icon-btn"
-                      onClick={() => setModifyReceipt(receipt)}
-                      title="Modify Receipt"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredReceipts.map(({ receipt, schedule }) => {
+                const installment = schedule.installments.find((item) => item.id === receipt.installmentId);
+                return (
+                  <tr key={receipt.id}>
+                    <td className="pm-text-semibold">{receipt.manualReceiptNo || receipt.receiptNo}</td>
+                    <td className="pm-text-semibold">{receipt.studentName || schedule.studentName}</td>
+                    <td>{receipt.payDate}</td>
+                    <td>{receipt.paymentMethod}</td>
+                    <td className="pm-text-semibold">{formatCurrency(receipt.amount)}</td>
+                    <td>{receipt.installmentName || "-"}</td>
+                    <td>{installment ? `No ${installment.installmentNo}` : "-"}</td>
+                    <td>{receipt.remarks || "-"}</td>
+                    <td>
+                      <div className="pm-history-actions">
+                        <button type="button" className="pm-icon-btn" title="Modify Receipt" onClick={() => setModifyReceipt(receipt)}><Edit className="w-4 h-4" /></button>
+                        <button type="button" className="pm-icon-btn" title="Print Receipt" onClick={() => window.print()}><Download className="w-4 h-4" /></button>
+                        <button type="button" className="pm-icon-btn pm-icon-btn--danger" title="Delete Receipt" onClick={() => handleDelete(receipt.id)}><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+        <div className="pm-history-table__footer"><span>Showing 1–{filteredReceipts.length} of {filteredReceipts.length}</span><div className="pm-pagination__controls"><span className="pm-pagination__current">1</span><button type="button" className="pm-pagination__button" disabled>Next</button><button type="button" className="pm-pagination__button" disabled>Last</button><span className="pm-pagination__size">Page Size <select className="pm-select pm-select--pagination" defaultValue="10"><option value="10">10</option></select></span></div></div>
+      </section>
 
-      <div className="pm-mock-notice">
-        Note: Receipt data is temporary mock data. It does not persist across page reloads.
-      </div>
+      <div className="pm-mock-notice">Note: Receipt data is temporary mock data. It does not persist across page reloads.</div>
 
-      <ModifyReceiptDialog
-        open={!!modifyReceipt}
-        receipt={modifyReceipt}
-        onClose={() => setModifyReceipt(null)}
-        onSave={handleModifyReceiptSave}
-      />
+      <ModifyReceiptDialog open={!!modifyReceipt} receipt={modifyReceipt} onClose={() => setModifyReceipt(null)} onSave={handleModifyReceiptSave} />
     </div>
   );
 };

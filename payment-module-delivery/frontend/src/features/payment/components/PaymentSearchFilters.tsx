@@ -1,8 +1,7 @@
-// ─── Payment Search Filters Component ──────────────────────────────────────────
 import React, { useState } from "react";
-import { Search, X } from "lucide-react";
+import { RefreshCw, Search } from "lucide-react";
 import type { PaymentSearchRequest } from "../paymentTypes";
-import { PAYMENT_TYPES, SCHEDULE_STATUS } from "../paymentConstants";
+import { SCHEDULE_STATUS } from "../paymentConstants";
 
 interface PaymentSearchFiltersProps {
   onSearch: (request: PaymentSearchRequest) => void;
@@ -17,14 +16,17 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
 }) => {
   const [studentName, setStudentName] = useState("");
   const [regNo, setRegNo] = useState("");
-  const [paymentType, setPaymentType] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [contactNo, setContactNo] = useState("");
+  const [status, setStatus] = useState("");
+  const [curriculum, setCurriculum] = useState("");
+  const [course, setCourse] = useState("");
+  const [subject, setSubject] = useState("");
 
   const handleSearch = () => {
     onSearch({
       studentName,
       regNo,
-      paymentType: paymentType as PaymentSearchRequest["paymentType"],
+      paymentType: "",
       status: status as PaymentSearchRequest["status"],
       branchId,
       pageNumber: 1,
@@ -37,77 +39,71 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
   const handleReset = () => {
     setStudentName("");
     setRegNo("");
-    setPaymentType("");
+    setContactNo("");
     setStatus("");
+    setCurriculum("");
+    setCourse("");
+    setSubject("");
     onReset();
   };
 
+  const onEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") handleSearch();
+  };
+
   return (
-    <div className="pm-card pm-search-filters">
-      <div className="pm-search-filters__row">
+    <section className="pm-card pm-search-filters">
+      <div className="pm-search-filters__title">SEARCH</div>
+      <div className="pm-search-filters__grid">
         <div className="pm-form-group">
-          <label className="pm-label">Student Name</label>
-          <input
-            type="text"
-            className="pm-input"
-            placeholder="Search by student name"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
+          <label className="pm-label">Student name</label>
+          <input className="pm-input" placeholder="e.g .Rushabh" value={studentName} onChange={(event) => setStudentName(event.target.value)} onKeyDown={onEnter} />
         </div>
         <div className="pm-form-group">
-          <label className="pm-label">Reg. No.</label>
-          <input
-            type="text"
-            className="pm-input"
-            placeholder="Search by registration no."
-            value={regNo}
-            onChange={(e) => setRegNo(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
+          <label className="pm-label">Registration number</label>
+          <input className="pm-input" placeholder="e.g.62736672636" value={regNo} onChange={(event) => setRegNo(event.target.value)} onKeyDown={onEnter} />
         </div>
         <div className="pm-form-group">
-          <label className="pm-label">Payment Type</label>
-          <select
-            className="pm-select"
-            value={paymentType}
-            onChange={(e) => setPaymentType(e.target.value)}
-          >
-            <option value="">All Types</option>
-            {PAYMENT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+          <label className="pm-label">Contact No.</label>
+          <input className="pm-input" placeholder="e.g. 7348737736" value={contactNo} onChange={(event) => setContactNo(event.target.value)} onKeyDown={onEnter} />
         </div>
         <div className="pm-form-group">
           <label className="pm-label">Status</label>
-          <select
-            className="pm-select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-            {SCHEDULE_STATUS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
+          <select className="pm-select" value={status} onChange={(event) => setStatus(event.target.value)}>
+            <option value="">Select Status</option>
+            {SCHEDULE_STATUS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+        </div>
+        <div className="pm-form-group">
+          <label className="pm-label">Curriculum</label>
+          <select className="pm-select" value={curriculum} onChange={(event) => setCurriculum(event.target.value)}>
+            <option value="">Search Curriculum</option>
+            <option value="IIT-JEE">IIT-JEE</option>
+            <option value="NEET">NEET</option>
+          </select>
+        </div>
+        <div className="pm-form-group">
+          <label className="pm-label">Course</label>
+          <select className="pm-select" value={course} onChange={(event) => setCourse(event.target.value)}>
+            <option value="">Select Course</option>
+            <option value="Foundation">IIT-JEE Foundation</option>
+            <option value="Advanced">IIT-JEE Advanced</option>
+          </select>
+        </div>
+        <div className="pm-form-group">
+          <label className="pm-label">Subject</label>
+          <select className="pm-select" value={subject} onChange={(event) => setSubject(event.target.value)}>
+            <option value="">Select Subject</option>
+            <option value="Physics">Physics</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Biology">Biology</option>
           </select>
         </div>
         <div className="pm-search-filters__actions">
-          <button type="button" className="pm-btn pm-btn--primary" onClick={handleSearch}>
-            <Search className="w-4 h-4" />
-            Search
-          </button>
-          <button type="button" className="pm-btn pm-btn--secondary" onClick={handleReset}>
-            <X className="w-4 h-4" />
-            Clear
-          </button>
+          <button type="button" className="pm-btn pm-btn--secondary" onClick={handleReset}><RefreshCw className="w-4 h-4" />Reset</button>
+          <button type="button" className="pm-btn pm-btn--primary" onClick={handleSearch}><Search className="w-4 h-4" />Search</button>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
