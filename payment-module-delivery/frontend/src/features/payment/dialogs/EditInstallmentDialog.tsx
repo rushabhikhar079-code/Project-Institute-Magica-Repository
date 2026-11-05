@@ -107,7 +107,6 @@ export const EditInstallmentDialog: React.FC<EditInstallmentDialogProps> = ({
           </div>
           <div className="pm-edit-installment-dialog__totals">
             <div>Total Amount : <strong>{formatCurrency(totalAmount)}</strong></div>
-            <div>Remaining Amount : <strong>{formatCurrency(totalAmount - installment.paidAmount)}</strong></div>
             <div>Paid Amount : <strong className="pm-text-success">{formatCurrency(installment.paidAmount)}</strong></div>
             <div>Remaining Amount : <strong className="pm-text-danger">{formatCurrency(totalAmount - installment.paidAmount)}</strong></div>
           </div>

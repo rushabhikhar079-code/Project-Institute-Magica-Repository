@@ -143,6 +143,22 @@
   background: var(--pm-brand-light);
 }
 
+.pm-btn--warning {
+  background: var(--pm-warning);
+  color: #fff;
+}
+.pm-btn--warning:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.pm-btn--danger {
+  background: var(--pm-danger);
+  color: #fff;
+}
+.pm-btn--danger:hover:not(:disabled) {
+  background: var(--pm-danger-dark, #b91c1c);
+}
+
 .pm-btn--sm {
   padding: var(--pm-spacing-1) var(--pm-spacing-3);
   font-size: var(--pm-font-size-xs);
@@ -420,55 +436,6 @@
   border-left: 3px solid var(--pm-warning);
 }
 
-/* ─── Validation Alert (Screen 8) ─────────────────────────────────────────── */
-.pm-validation-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--pm-spacing-3);
-  padding: var(--pm-spacing-3) var(--pm-spacing-4);
-  background: var(--pm-warning-light);
-  border: 1px solid var(--pm-warning);
-  border-radius: var(--pm-radius-md);
-  border-left: 4px solid var(--pm-warning);
-}
-
-.pm-validation-alert__icon {
-  color: var(--pm-warning);
-  flex-shrink: 0;
-  padding-top: 2px;
-}
-
-.pm-validation-alert__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.pm-validation-alert__title {
-  font-size: var(--pm-font-size-sm);
-  font-weight: 700;
-  color: #92400e;
-}
-
-.pm-validation-alert__message {
-  font-size: var(--pm-font-size-sm);
-  color: #78350f;
-}
-
-.pm-validation-alert__close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--pm-neutral-500);
-  padding: 2px;
-  flex-shrink: 0;
-}
-
-.pm-validation-alert__close:hover {
-  color: var(--pm-neutral-700);
-}
-
 /* ─── Checkbox Label ───────────────────────────────────────────────────────── */
 .pm-checkbox-label {
   display: flex;
@@ -484,110 +451,6 @@
   height: 16px;
   accent-color: var(--pm-brand);
   cursor: pointer;
-}
-
-/* ─── Create Schedule Sections ─────────────────────────────────────────────── */
-.pm-create-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-3);
-}
-
-.pm-create-section__title {
-  font-size: var(--pm-font-size-base);
-  font-weight: 700;
-  color: var(--pm-neutral-800);
-  margin: 0;
-}
-
-.pm-student-selected {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--pm-spacing-3) var(--pm-spacing-4);
-  background: var(--pm-brand-light);
-  border-radius: var(--pm-radius-md);
-}
-
-.pm-student-selected__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.pm-payment-type-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--pm-spacing-3);
-}
-
-.pm-payment-type-card {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--pm-spacing-3);
-  padding: var(--pm-spacing-4);
-  border: 2px solid var(--pm-neutral-200);
-  border-radius: var(--pm-radius-lg);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pm-payment-type-card--selected {
-  border-color: var(--pm-brand);
-  background: var(--pm-brand-light);
-}
-
-.pm-payment-type-card input[type="radio"] {
-  margin-top: 2px;
-}
-
-.pm-payment-type-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.pm-payment-type-card__label {
-  font-weight: 600;
-  font-size: var(--pm-font-size-sm);
-  color: var(--pm-neutral-800);
-}
-
-.pm-payment-type-card__desc {
-  font-size: var(--pm-font-size-xs);
-  color: var(--pm-neutral-500);
-}
-
-/* ─── Create Schedule Two-Column Layout ─────────────────────────────────────── */
-.pm-create-layout {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: var(--pm-spacing-5);
-  align-items: start;
-}
-
-.pm-create-layout__main {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-4);
-}
-
-.pm-create-layout__sidebar {
-  position: sticky;
-  top: var(--pm-spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-4);
-}
-
-.pm-create-layout__actions {
-  display: flex;
-  gap: var(--pm-spacing-3);
-}
-
-.pm-create-layout__actions .pm-btn {
-  flex: 1;
-  justify-content: center;
 }
 
 /* ─── Form Section ──────────────────────────────────────────────────────────── */
@@ -625,13 +488,6 @@
   background: var(--pm-neutral-50);
   color: var(--pm-neutral-600);
   cursor: default;
-}
-
-.pm-create-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--pm-spacing-3);
-  margin-top: var(--pm-spacing-4);
 }
 
 /* ─── Subject Selection ────────────────────────────────────────────────────── */
@@ -910,80 +766,6 @@
   font-weight: 700;
 }
 
-/* ─── Payment Recording ────────────────────────────────────────────────────── */
-.pm-recording-form__title {
-  font-size: var(--pm-font-size-lg);
-  font-weight: 700;
-  margin: 0 0 var(--pm-spacing-4) 0;
-}
-
-.pm-recording-form__installment-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--pm-spacing-3);
-  padding: var(--pm-spacing-3);
-  background: var(--pm-neutral-50);
-  border-radius: var(--pm-radius-md);
-  margin-bottom: var(--pm-spacing-4);
-}
-
-.pm-recording-form__info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.pm-recording-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--pm-spacing-3);
-  margin-top: var(--pm-spacing-4);
-}
-
-/* ─── Recording Fees Summary (Screen 6) ───────────────────────────────────── */
-.pm-recording-fees-summary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-3);
-}
-
-.pm-recording-fees-summary__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--pm-spacing-4);
-}
-
-.pm-recording-fees-summary__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-2);
-}
-
-.pm-recording-fees-summary__label {
-  font-size: var(--pm-font-size-sm);
-  font-weight: 700;
-  color: var(--pm-brand);
-  margin: 0;
-}
-
-.pm-recording-fees-summary__item {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--pm-font-size-sm);
-  color: var(--pm-neutral-700);
-}
-
-/* ─── Recording Notifications (Screen 6) ──────────────────────────────────── */
-.pm-recording-form__notifications {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pm-spacing-2);
-  padding: var(--pm-spacing-3);
-  background: var(--pm-neutral-50);
-  border-radius: var(--pm-radius-md);
-  border: 1px solid var(--pm-neutral-200);
-}
-
 /* ─── Edit Installments Page (Screen 2) ───────────────────────────────────── */
 .pm-edit-installments {
   display: flex;
@@ -1104,27 +886,6 @@
   margin: 0;
 }
 
-/* ─── Filter Bar ───────────────────────────────────────────────────────────── */
-.pm-filter-bar {
-  padding: var(--pm-spacing-3) var(--pm-spacing-4);
-}
-
-.pm-filter-bar__row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--pm-spacing-3);
-  margin-bottom: var(--pm-spacing-2);
-}
-
-.pm-filter-bar__row:last-child {
-  margin-bottom: 0;
-}
-
-.pm-filter-bar__actions {
-  display: flex;
-  align-items: flex-end;
-}
-
 /* ─── Pagination ───────────────────────────────────────────────────────────── */
 .pm-pagination {
   display: flex;
@@ -1154,16 +915,6 @@
 }
 
 /* ─── Responsive ───────────────────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .pm-create-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .pm-create-layout__sidebar {
-    position: static;
-  }
-}
-
 @media (max-width: 768px) {
   .pm-page {
     padding: var(--pm-spacing-3);
@@ -1192,14 +943,6 @@
     align-items: stretch;
   }
 
-  .pm-filter-bar__row {
-    grid-template-columns: 1fr;
-  }
-
-  .pm-recording-fees-summary__grid {
-    grid-template-columns: 1fr;
-  }
-
   .pm-table {
     font-size: var(--pm-font-size-xs);
   }
@@ -1208,17 +951,11 @@
     font-size: var(--pm-font-size-xl);
   }
 
-  .pm-create-actions,
-  .pm-create-layout__actions,
-  .pm-recording-form__actions,
   .pm-edit-installments__footer,
   .pm-installment-config__save-actions {
     flex-direction: column-reverse;
   }
 
-  .pm-create-actions .pm-btn,
-  .pm-create-layout__actions .pm-btn,
-  .pm-recording-form__actions .pm-btn,
   .pm-edit-installments__footer .pm-btn,
   .pm-installment-config__save-actions .pm-btn {
     width: 100%;
@@ -1233,10 +970,6 @@
 
   .pm-card {
     padding: var(--pm-spacing-3);
-  }
-
-  .pm-payment-type-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -2544,3 +2277,38 @@
 .pm-validation-dialog__content strong { font-size: 17px; }
 .pm-validation-dialog__ok { align-self: end; min-width: 90px; justify-content: center; }
 .pm-validation-dialog__ok svg { width: 16px; height: 16px; }
+
+.pm-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.pm-table th,
+.pm-table td {
+  vertical-align: middle;
+}
+
+.pm-table td > input[type="checkbox"],
+.pm-table td > input[type="radio"],
+.pm-schedule-subjects input[type="checkbox"],
+.pm-radio-row input[type="radio"],
+.pm-discount-control input[type="radio"] {
+  margin: 0;
+  vertical-align: middle;
+}
+
+.pm-checkbox-label {
+  min-height: 34px;
+  line-height: 1.25;
+}
+
+.pm-recording-table td:first-child,
+.pm-recording-table th:first-child {
+  text-align: center;
+}
+
+.pm-recording-table td:last-child,
+.pm-recording-table th:last-child {
+  text-align: center;
+}
