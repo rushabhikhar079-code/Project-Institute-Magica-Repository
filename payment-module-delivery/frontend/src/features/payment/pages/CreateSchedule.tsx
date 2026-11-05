@@ -153,6 +153,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         {
           id: `inst-${Date.now()}`,
           installmentNo: 1,
+          installmentName: paymentType === "LumpSum" ? "Lump Sum" : "Adhoc-1",
           dueDate: new Date().toLocaleDateString("en-GB"),
           basicAmount: totalPayable,
           discountAmount: 0,
@@ -161,6 +162,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
           netAmount: totalPayable,
           paidAmount: 0,
           outstandingAmount: totalPayable,
+          outstandingWithoutTax: totalPayable,
           status: "Pending",
           remarks: "",
         },
@@ -171,6 +173,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         amounts.map((amount, idx) => ({
           id: `inst-${Date.now()}-${idx}`,
           installmentNo: idx + 1,
+          installmentName: `Installment ${idx + 1}`,
           dueDate: "",
           basicAmount: amount,
           discountAmount: 0,
@@ -179,6 +182,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
           netAmount: amount,
           paidAmount: 0,
           outstandingAmount: amount,
+          outstandingWithoutTax: amount,
           status: "Pending",
           remarks: "",
         })),
@@ -193,6 +197,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             basicAmount: amounts[idx] || 0,
             netAmount: amounts[idx] || 0,
             outstandingAmount: amounts[idx] || 0,
+            outstandingWithoutTax: round2((amounts[idx] || 0) - inst.paidAmount),
           })),
         );
       }
