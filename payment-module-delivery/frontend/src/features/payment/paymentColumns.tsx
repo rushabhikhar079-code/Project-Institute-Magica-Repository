@@ -2,7 +2,7 @@
 // Follows existing project pattern from features/students/admission/columns.tsx.
 // Uses TableColumn type from components/common/DataTable.
 
-import { Edit, Eye, Trash2, Send, Plus, Calendar, CreditCard } from "lucide-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import type { TableColumn } from "../../../../components/common/DataTable";
 import type { PaymentSchedule, PaymentReceipt, Installment } from "./paymentTypes";
 import { formatCurrency } from "./paymentCalculations";
@@ -20,198 +20,109 @@ const StatusBadge = ({ status, color }: { status: string; color: string }) => (
 
 // ─── Schedule List Columns ─────────────────────────────────────────────────────
 export interface ScheduleColumnProps {
-  onView: (schedule: PaymentSchedule) => void;
-  onEdit: (schedule: PaymentSchedule) => void;
-  onRecordPayment: (schedule: PaymentSchedule) => void;
-  onSendLink: (schedule: PaymentSchedule) => void;
   onCancel: (schedule: PaymentSchedule) => void;
   onSchedule: (schedule: PaymentSchedule) => void;
   onPay: (schedule: PaymentSchedule) => void;
 }
 
 export const getScheduleColumns = ({
-  onView,
-  onEdit,
-  onRecordPayment,
-  onSendLink,
   onCancel,
   onSchedule,
   onPay,
 }: ScheduleColumnProps): TableColumn<PaymentSchedule>[] => [
   {
-    key: "actions",
-    header: "Actions",
-    width: "220px",
-    align: "center",
-    sortable: false,
-    render: (schedule: PaymentSchedule) => (
-      <div className="flex items-center justify-center gap-1">
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onView(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="View Schedule"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="Edit Schedule"
-          disabled={schedule.status === "Completed" || schedule.status === "Cancelled"}
-        >
-          <Edit className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onSchedule(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="Edit Installments"
-          disabled={schedule.status === "Cancelled"}
-        >
-          <Calendar className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onPay(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="Pay"
-          disabled={schedule.status === "Cancelled"}
-        >
-          <CreditCard className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onRecordPayment(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="Record Payment"
-          disabled={schedule.status === "Cancelled"}
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onSendLink(schedule); }}
-          className="p-1.5 rounded-lg transition-colors"
-          style={{ color: BRAND_COLOR }}
-          title="Send Payment Link"
-        >
-          <Send className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onCancel(schedule); }}
-          className="p-1.5 rounded-lg transition-colors text-red-600 hover:bg-red-50"
-          title="Cancel Schedule"
-          disabled={schedule.status === "Completed" || schedule.status === "Cancelled"}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    ),
-  },
-  {
     key: "studentName",
     header: "Student Name",
+    width: "145px",
     sortable: true,
     sortKey: "studentName",
     render: (schedule: PaymentSchedule) => schedule.studentName || "-",
   },
   {
     key: "studentRegNo",
-    header: "Reg. No.",
+    header: "Registration No.",
+    width: "160px",
     sortable: true,
     sortKey: "studentRegNo",
     render: (schedule: PaymentSchedule) => schedule.studentRegNo || "-",
   },
   {
     key: "studentMobile",
-    header: "Contact",
+    header: "Mobile No.",
+    width: "145px",
     sortable: false,
     render: (schedule: PaymentSchedule) => schedule.studentMobile || "-",
   },
   {
-    key: "curriculum",
-    header: "Curriculum",
-    sortable: false,
-    render: (schedule: PaymentSchedule) => schedule.curriculum || "-",
+    key: "totalPayable",
+    header: "Total Fees",
+    width: "135px",
+    align: "right",
+    sortable: true,
+    sortKey: "totalPayable",
+    render: (schedule: PaymentSchedule) => formatCurrency(schedule.totalPayable),
+  },
+  {
+    key: "totalPaid",
+    header: "Paid Amount",
+    width: "135px",
+    align: "right",
+    sortable: true,
+    sortKey: "totalPaid",
+    render: (schedule: PaymentSchedule) => formatCurrency(schedule.totalPaid),
+  },
+  {
+    key: "totalOutstanding",
+    header: "Outstanding Bal.",
+    width: "155px",
+    align: "right",
+    sortable: true,
+    sortKey: "totalOutstanding",
+    render: (schedule: PaymentSchedule) => formatCurrency(schedule.totalOutstanding),
   },
   {
     key: "courseName",
     header: "Course",
+    width: "205px",
     sortable: true,
     sortKey: "courseName",
     render: (schedule: PaymentSchedule) => schedule.courseName || "-",
   },
   {
-    key: "subjectNames",
-    header: "Subject(s)",
+    key: "actions",
+    header: "Actions",
+    width: "175px",
+    align: "center",
     sortable: false,
-    render: (schedule: PaymentSchedule) => schedule.subjectNames || "-",
-  },
-  {
-    key: "paymentType",
-    header: "Payment Type",
-    sortable: true,
-    sortKey: "paymentType",
     render: (schedule: PaymentSchedule) => {
-      const labels: Record<string, string> = {
-        LumpSum: "Lump Sum",
-        Adhoc: "Adhoc",
-        Installment: "Installment",
-      };
-      return labels[schedule.paymentType] || schedule.paymentType;
-    },
-  },
-  {
-    key: "totalPayable",
-    header: "Total Payable",
-    sortable: true,
-    sortKey: "totalPayable",
-    align: "right",
-    render: (schedule: PaymentSchedule) => formatCurrency(schedule.totalPayable),
-  },
-  {
-    key: "totalPaid",
-    header: "Paid",
-    sortable: true,
-    sortKey: "totalPaid",
-    align: "right",
-    render: (schedule: PaymentSchedule) => (
-      <span style={{ color: "#16a34a" }}>{formatCurrency(schedule.totalPaid)}</span>
-    ),
-  },
-  {
-    key: "totalOutstanding",
-    header: "Outstanding",
-    sortable: true,
-    sortKey: "totalOutstanding",
-    align: "right",
-    render: (schedule: PaymentSchedule) => (
-      <span style={{ color: schedule.totalOutstanding > 0 ? "#dc2626" : "#16a34a" }}>
-        {formatCurrency(schedule.totalOutstanding)}
-      </span>
-    ),
-  },
-  {
-    key: "status",
-    header: "Status",
-    sortable: true,
-    sortKey: "status",
-    render: (schedule: PaymentSchedule) => {
-      const colors: Record<string, string> = {
-        Draft: "#6b7280",
-        Active: "#0F4C81",
-        Completed: "#16a34a",
-        Cancelled: "#9ca3af",
-      };
-      return <StatusBadge status={schedule.status} color={colors[schedule.status] || "#6b7280"} />;
+      const canSchedule = schedule.status === "Draft";
+      return (
+        <div className="pm-manage-actions">
+          <button
+            type="button"
+            className={`pm-manage-action ${canSchedule ? "pm-manage-action--schedule" : "pm-manage-action--pay"}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              (canSchedule ? onSchedule : onPay)(schedule);
+            }}
+            disabled={schedule.status === "Cancelled"}
+          >
+            {canSchedule ? "Schedule" : "Pay"}
+          </button>
+          <button
+            type="button"
+            className="pm-manage-action pm-manage-action--delete"
+            onClick={(event) => {
+              event.stopPropagation();
+              onCancel(schedule);
+            }}
+            title="Delete payment schedule"
+            disabled={schedule.status === "Completed" || schedule.status === "Cancelled"}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      );
     },
   },
 ];

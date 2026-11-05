@@ -220,6 +220,18 @@ export const getSchedulesMock = async (
       s.studentRegNo.toLowerCase().includes(request.regNo.toLowerCase()),
     );
   }
+  if (request.contactNo) {
+    filtered = filtered.filter((s) => s.studentMobile.includes(request.contactNo || ""));
+  }
+  if (request.curriculum) {
+    filtered = filtered.filter((s) => s.curriculum === request.curriculum);
+  }
+  if (request.course) {
+    filtered = filtered.filter((s) => s.courseName.includes(request.course));
+  }
+  if (request.subject) {
+    filtered = filtered.filter((s) => s.subjectNames.includes(request.subject));
+  }
   if (request.paymentType) {
     filtered = filtered.filter((s) => s.paymentType === request.paymentType);
   }

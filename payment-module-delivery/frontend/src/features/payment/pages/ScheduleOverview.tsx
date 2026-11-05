@@ -4,13 +4,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Edit, Send } from "lucide-react";
 import type { PaymentSchedule, Installment, PaymentReceipt } from "../paymentTypes";
 import { getScheduleByIdMock, getReceiptsByScheduleMock, updateInstallmentMock, updateScheduleMock, updateReceiptMock } from "../paymentService";
-import { StudentPaymentSummary } from "../components/StudentPaymentSummary";
+import { StudentDetailsBanner } from "../components/StudentDetailsBanner";
 import { ScheduleTable } from "../components/ScheduleTable";
 import { EditInstallmentDialog } from "../dialogs/EditInstallmentDialog";
 import { EditScheduleDialog } from "../dialogs/EditScheduleDialog";
 import { SendPaymentLinkDialog } from "../dialogs/SendPaymentLinkDialog";
 import { ModifyReceiptDialog } from "../dialogs/ModifyReceiptDialog";
 import { getReceiptColumns } from "../paymentColumns";
+import { formatCurrency } from "../paymentCalculations";
 
 interface ScheduleOverviewProps {
   scheduleId: string;
@@ -119,17 +120,26 @@ export const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({
         </div>
       </div>
 
-      <StudentPaymentSummary schedule={schedule} />
+      <StudentDetailsBanner schedule={schedule} />
 
-      <div className="pm-section">
-        <h3 className="pm-section__title">Installment Schedule</h3>
-        <ScheduleTable
-          installments={schedule.installments}
-          onEditInstallment={(inst) => setEditInstallment(inst)}
-          onRecordPayment={(inst) => onRecordPayment(schedule.id, inst.id)}
-          scheduleStatus={schedule.status}
-        />
+      <div className="pm-overview-grid">
+        <section className="pm-section">
+          <div className="pm-overview-section-heading"><h3 className="pm-section__title">INSTALLMENT</h3><button type="button" className="pm-btn pm-btn--secondary">Edit All Installments</button></div>
+          <ScheduleTable
+            installments={schedule.installments}
+            onEditInstallment={(inst) => setEditInstallment(inst)}
+            onRecordPayment={(inst) => onRecordPayment(schedule.id, inst.id)}
+            scheduleStatus={schedule.status}
+          />
+        </section>
+        <aside className="pm-overview-summary pm-section">
+          <h3 className="pm-section__title">PAYMENT SUMMARY</h3>
+          <div className="pm-overview-summary__group"><strong>COURSE FEES</strong><div><span>Amount</span><b>{formatCurrency(schedule.totalNetAmount)}</b></div><div><span>Discount</span><b>{formatCurrency(schedule.totalDiscount)}</b></div><div><span>Tax</span><b>{formatCurrency(schedule.totalTax)}</b></div><div><span>Total</span><b>{formatCurrency(schedule.totalPayable)}</b></div></div>
+          <div className="pm-overview-summary__payable"><span>Total Payable</span><strong>{formatCurrency(schedule.totalPayable)}</strong></div>
+        </aside>
       </div>
+
+      <section className="pm-section pm-overview-fees"><div className="pm-overview-section-heading"><h3 className="pm-section__title">APPLICABLE OTHER FEES</h3><span>Showing {schedule.feeLines.filter((line) => line.type === "OtherFee").length} Applicable Fees For {schedule.studentName.toUpperCase()}</span><button type="button" className="pm-btn pm-btn--secondary">Show All Other Fees</button></div><table className="pm-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{schedule.feeLines.filter((line) => line.type === "OtherFee").map((line) => <tr key={line.id}><td>{line.name}</td><td>One Time</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody></table></section>
 
       <div className="pm-section">
         <h3 className="pm-section__title">Payment Receipts</h3>

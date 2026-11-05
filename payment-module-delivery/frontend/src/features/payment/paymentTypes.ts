@@ -283,6 +283,10 @@ export interface ApiResponse<T> {
 export interface PaymentSearchRequest {
   studentName: string;
   regNo: string;
+  contactNo?: string;
+  curriculum?: string;
+  course?: string;
+  subject?: string;
   paymentType: PaymentType | "";
   status: ScheduleStatus | "";
   branchId: number;

@@ -26,6 +26,10 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
     onSearch({
       studentName,
       regNo,
+      contactNo,
+      curriculum,
+      course,
+      subject,
       paymentType: "",
       status: status as PaymentSearchRequest["status"],
       branchId,

@@ -8,7 +8,6 @@ import { PaymentSummaryCards } from "../components/PaymentSummaryCards";
 import { PaymentSearchFilters } from "../components/PaymentSearchFilters";
 import { getScheduleColumns } from "../paymentColumns";
 import { round2 } from "../paymentCalculations";
-import { SendPaymentLinkDialog } from "../dialogs/SendPaymentLinkDialog";
 
 interface ManagePaymentsProps {
   branchId: number;
@@ -30,7 +29,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     sortDirection: null,
   });
   const [totalCount, setTotalCount] = useState(0);
-  const [sendLinkSchedule, setSendLinkSchedule] = useState<PaymentSchedule | null>(null);
 
   const fetchSchedules = useCallback(async () => {
     setLoading(true);
@@ -67,24 +65,12 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
     });
   };
 
-  const handleView = (schedule: PaymentSchedule) => {
-    onNavigate("payment/schedules", { scheduleId: schedule.id });
-  };
-
-  const handleEdit = (schedule: PaymentSchedule) => {
-    onNavigate("payment/create-schedule", { scheduleId: schedule.id, mode: "edit" });
-  };
-
   const handleSchedule = (schedule: PaymentSchedule) => {
-    onNavigate("payment/edit-installments", { scheduleId: schedule.id });
+    onNavigate("payment/create-schedule", { scheduleId: schedule.id, mode: "edit" });
   };
 
   const handleRecordPayment = (schedule: PaymentSchedule) => {
     onNavigate("payment/record-payment", { scheduleId: schedule.id });
-  };
-
-  const handleSendLink = (schedule: PaymentSchedule) => {
-    setSendLinkSchedule(schedule);
   };
 
   const handleCancel = async (schedule: PaymentSchedule) => {
@@ -96,7 +82,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
   const totalPayable = round2(schedules.reduce((s, sch) => s + sch.totalPayable, 0));
   const totalPaid = round2(schedules.reduce((s, sch) => s + sch.totalPaid, 0));
   const totalOutstanding = round2(schedules.reduce((s, sch) => s + sch.totalOutstanding, 0));
-  const activeCount = schedules.filter((s) => s.status === "Active").length;
   const pageCount = Math.max(1, Math.ceil(totalCount / searchRequest.pageSize));
 
   const handlePageChange = (pageNumber: number) => {
@@ -104,10 +89,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
   };
 
   const columns = getScheduleColumns({
-    onView: handleView,
-    onEdit: handleEdit,
-    onRecordPayment: handleRecordPayment,
-    onSendLink: handleSendLink,
     onCancel: handleCancel,
     onSchedule: handleSchedule,
     onPay: handleRecordPayment,
@@ -128,7 +109,7 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
         totalPayable={totalPayable}
         totalPaid={totalPaid}
         totalOutstanding={totalOutstanding}
-        activeSchedules={activeCount}
+        activeSchedules={totalCount}
       />
 
       <div className="pm-card pm-data-table-card">
@@ -186,11 +167,6 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
         Backend CRUD APIs are required for permanent storage.
       </div>
 
-      <SendPaymentLinkDialog
-        open={!!sendLinkSchedule}
-        schedule={sendLinkSchedule}
-        onClose={() => setSendLinkSchedule(null)}
-      />
     </div>
   );
 };

@@ -111,6 +111,11 @@ export const PreviewApp: React.FC = () => {
     : state.page;
 
   const pageTitle = state.page === "history" ? "Payment History" : "Manage Payment";
+  const breadcrumb = state.page === "manage"
+    ? ["Fee & Payments", "Active Payments"]
+    : state.page === "history"
+      ? ["Manage Payment", "Payment History"]
+      : ["Manage Payment", "Schedule Payment"];
 
   return (
     <div className="preview-shell">
@@ -148,9 +153,9 @@ export const PreviewApp: React.FC = () => {
           <Bell className="preview-topbar__bell" />
         </header>
         <div className="preview-breadcrumb">
-          <span>Fee &amp; Payments</span>
+          <span>{breadcrumb[0]}</span>
           <span>/</span>
-          <strong>{pageTitle}</strong>
+          <strong>{breadcrumb[1]}</strong>
         </div>
         {showAlert && state.page === "manage" && (
           <div className="preview-alert-wrap">

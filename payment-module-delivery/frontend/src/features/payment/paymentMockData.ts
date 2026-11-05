@@ -158,7 +158,7 @@ export const mockSchedules: PaymentSchedule[] = [
     studentEmail: "aarav@example.com",
     branchId: 1, curriculum: "CBSE", courseName: "JEE Main",
     subjectNames: "Mathematics, Physics",
-    paymentType: "Installment", status: "Active",
+    paymentType: "Installment", status: "Draft",
     feeLines, installments,
     totalPayable, totalPaid,
     totalOutstanding: round2(totalPayable - totalPaid),

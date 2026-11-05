@@ -10,7 +10,7 @@ import type { PaymentSchedule, Installment, PaymentRecordingForm, PaymentMethod 
 import { getScheduleByIdMock, recordPaymentMock, sendPaymentLinkMock } from "../paymentService";
 import { PAYMENT_METHODS } from "../paymentConstants";
 import { formatCurrency, round2 } from "../paymentCalculations";
-import { StudentPaymentSummary } from "../components/StudentPaymentSummary";
+import { StudentDetailsBanner } from "../components/StudentDetailsBanner";
 
 interface PaymentRecordingProps {
   scheduleId: string;
@@ -226,7 +226,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
         </div>
       )}
 
-      <StudentPaymentSummary schedule={schedule} />
+      <StudentDetailsBanner schedule={schedule} />
 
       {/* Course/Subject/Other Fees Summary */}
       <div className="pm-card pm-recording-fees-summary">

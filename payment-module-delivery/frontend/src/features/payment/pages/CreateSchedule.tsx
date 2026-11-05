@@ -22,6 +22,7 @@ import {
   getCoursesMock,
   createScheduleMock,
 } from "../paymentService";
+import { mockStudents } from "../paymentMockData";
 import {
   calculateFeeLine,
   calculateTotalPayable,
@@ -46,13 +47,13 @@ interface CreateScheduleProps {
 }
 
 export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack, onCreated }) => {
-  const [student, setStudent] = useState<StudentSearchResult | null>(null);
+  const [student, setStudent] = useState<StudentSearchResult | null>(mockStudents[0] ?? null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [paymentType, setPaymentType] = useState<PaymentType>("Installment");
   const [subjects, setSubjects] = useState<SubjectFeeInfo[]>([]);
   const [courses, setCourses] = useState<CourseFeeInfo[]>([]);
   const [otherFees, setOtherFees] = useState<OtherFee[]>([]);
-  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([101]);
   const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
   const [selectedOtherFeeCodes, setSelectedOtherFeeCodes] = useState<number[]>([]);
   const [installments, setInstallments] = useState<Installment[]>([]);
@@ -140,7 +141,10 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
     return lines;
   }, [selectedCourseIds, selectedSubjectIds, selectedOtherFeeCodes, courses, subjects, otherFees]);
 
-  const totalPayable = React.useMemo(() => calculateTotalPayable(feeLines), [feeLines]);
+  const totalPayable = React.useMemo(
+    () => round2(Math.max(0, calculateTotalPayable(feeLines) - globalDiscount)),
+    [feeLines, globalDiscount],
+  );
 
   // ─── Initialize / redistribute installments when fee lines or type changes ─
   useEffect(() => {
@@ -275,12 +279,11 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   // ─── Two-column XD layout: left = form sections, right = summary sidebar ──
   return (
     <div className="pm-page">
-      <div className="pm-page__header">
+      <div className="pm-page__header pm-page__header--back-only">
         <button type="button" className="pm-btn pm-btn--ghost" onClick={onBack}>
           <ArrowLeft className="w-4 h-4" />
-          Back
+          Back To List
         </button>
-        <h1 className="pm-page__title">Create Payment Schedule</h1>
       </div>
 
       {error && (

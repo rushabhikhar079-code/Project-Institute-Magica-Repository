@@ -7,7 +7,7 @@ import { ArrowLeft, Save, CreditCard, RotateCcw } from "lucide-react";
 import type { PaymentSchedule, Installment } from "../paymentTypes";
 import { getScheduleByIdMock, updateInstallmentMock, updateScheduleMock } from "../paymentService";
 import { formatCurrency, round2, distributeEqually } from "../paymentCalculations";
-import { StudentPaymentSummary } from "../components/StudentPaymentSummary";
+import { StudentDetailsBanner } from "../components/StudentDetailsBanner";
 
 interface EditInstallmentsProps {
   scheduleId: string;
@@ -157,7 +157,7 @@ export const EditInstallments: React.FC<EditInstallmentsProps> = ({
       {error && <div className="pm-error-banner">{error}</div>}
       {success && <div className="pm-success-banner">{success}</div>}
 
-      <StudentPaymentSummary schedule={schedule} />
+      <StudentDetailsBanner schedule={schedule} />
 
       <div className="pm-card pm-edit-installments">
         <div className="pm-edit-installments__toolbar">

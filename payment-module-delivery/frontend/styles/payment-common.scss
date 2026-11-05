@@ -1750,3 +1750,541 @@
     gap: 12px;
   }
 }
+
+.pm-manage-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pm-manage-action {
+  min-width: 100px;
+  height: 34px;
+  border: 0;
+  border-radius: 2px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pm-manage-action--schedule {
+  background: #e77d00;
+}
+
+.pm-manage-action--pay {
+  background: var(--pm-brand);
+}
+
+.pm-manage-action--delete {
+  min-width: 34px;
+  width: 34px;
+  color: #ff1f2d;
+  background: #ffe4e7;
+}
+
+.pm-manage-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pm-dialog__subtitle {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+}
+
+.pm-edit-installment-dialog {
+  max-width: 805px;
+}
+
+.pm-edit-installment-dialog__body {
+  padding: 13px 29px 16px;
+}
+
+.pm-edit-installment-dialog__body .pm-dialog__notice {
+  margin-bottom: 24px;
+}
+
+.pm-edit-installment-dialog__table-wrap {
+  overflow-x: auto;
+  box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-edit-installment-dialog__table {
+  min-width: 745px;
+}
+
+.pm-edit-installment-dialog__table th,
+.pm-edit-installment-dialog__table td {
+  white-space: nowrap;
+}
+
+.pm-edit-installment-dialog__table td .pm-input,
+.pm-edit-installment-dialog__table td .pm-date-input {
+  width: 120px;
+}
+
+.pm-edit-installment-dialog__table tfoot td {
+  background: #ffecd6;
+  font-weight: 800;
+}
+
+.pm-edit-installment-dialog__totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 26px;
+  padding: 17px 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pm-edit-installment-dialog__totals strong {
+  color: #e77d00;
+}
+
+.pm-edit-schedule-dialog {
+  max-width: 970px;
+}
+
+.pm-edit-schedule-dialog__body {
+  padding: 15px 27px 19px;
+}
+
+.pm-edit-schedule-dialog__choices {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 19px;
+}
+
+.pm-edit-schedule-dialog__choices label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid #bfc5cf;
+  color: var(--pm-neutral-900);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.pm-edit-schedule-dialog__choices label.is-selected {
+  border-color: #1684d4;
+  background: #e5f2ff;
+  color: var(--pm-brand);
+}
+
+.pm-edit-schedule-dialog__choices svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pm-edit-schedule-dialog__summary,
+.pm-edit-schedule-dialog__remarks,
+.pm-edit-schedule-dialog__adjustment {
+  border: 1px solid #bfc5cf;
+  box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-edit-schedule-dialog__summary h4,
+.pm-edit-schedule-dialog__remarks h4,
+.pm-edit-schedule-dialog__adjustment h4 {
+  margin: 0;
+  padding: 11px;
+  border-bottom: 1px solid #d4d8df;
+  color: var(--pm-brand);
+  font-size: 14px;
+}
+
+.pm-edit-schedule-dialog__summary .pm-table {
+  margin: 19px 11px;
+  width: calc(100% - 22px);
+}
+
+.pm-edit-schedule-dialog__summary .pm-table tbody tr:nth-child(2) {
+  background: #e5efff;
+}
+
+.pm-edit-schedule-dialog__summary .pm-table td:last-child strong {
+  display: inline-block;
+  padding: 7px 28px;
+  background: #d8ebff;
+  color: var(--pm-brand);
+}
+
+.pm-edit-schedule-dialog__summary .pm-table td .pm-input {
+  width: 120px;
+}
+
+.pm-edit-schedule-dialog__lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 19px;
+}
+
+.pm-edit-schedule-dialog__remarks,
+.pm-edit-schedule-dialog__adjustment {
+  min-height: 220px;
+}
+
+.pm-edit-schedule-dialog__remarks {
+  padding-bottom: 10px;
+}
+
+.pm-edit-schedule-dialog__remarks .pm-textarea {
+  margin: 19px 11px 0;
+  width: calc(100% - 22px);
+}
+
+.pm-edit-schedule-dialog__remarks span {
+  display: block;
+  padding: 7px 11px 0;
+  color: #8a8a8a;
+  font-size: 12px;
+  text-align: right;
+}
+
+.pm-edit-schedule-dialog__adjustment {
+  padding-bottom: 10px;
+  background: #edf6ff;
+}
+
+.pm-edit-schedule-dialog__adjustment label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px 0;
+  font-size: 13px;
+}
+
+.pm-send-link-dialog {
+  max-width: 900px;
+}
+
+.pm-send-link-dialog__body {
+  padding: 28px;
+}
+
+.pm-send-link-dialog__grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 30px;
+}
+
+.pm-send-link-dialog__course {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 12px;
+  border: 1px solid #1585dc;
+  background: #f5faff;
+}
+
+.pm-send-link-dialog__course > div:last-child {
+  border-left: 1px solid #c0c7d2;
+  padding-left: 28px;
+}
+
+.pm-send-link-dialog__course small,
+.pm-send-link-dialog__course strong,
+.pm-send-link-dialog__options small,
+.pm-send-link-dialog__options strong {
+  display: block;
+}
+
+.pm-send-link-dialog__course small,
+.pm-send-link-dialog__options small {
+  color: #7b8188;
+}
+
+.pm-send-link-dialog__icon,
+.pm-send-link-dialog__option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #cce3ff;
+  color: var(--pm-brand);
+}
+
+.pm-send-link-dialog__section-label {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 3px 8px;
+  margin: 36px 0 18px;
+}
+
+.pm-send-link-dialog__section-label span {
+  grid-column: 2;
+  color: #85898e;
+  font-size: 13px;
+}
+
+.pm-send-link-dialog__options {
+  border: 1px solid #1585dc;
+  background: #f5faff;
+}
+
+.pm-send-link-dialog__options label {
+  display: grid;
+  grid-template-columns: 42px 18px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin: 0 12px;
+  padding: 16px 0;
+}
+
+.pm-send-link-dialog__options label + label {
+  border-top: 1px solid #c4d7e9;
+}
+
+.pm-send-link-dialog__option-icon--whatsapp {
+  background: #c6f3df;
+  color: #118c48;
+}
+
+.pm-send-link-dialog__status {
+  padding: 5px 12px 0;
+  background: #f5faff;
+}
+
+.pm-send-link-dialog__illustration {
+  display: grid;
+  place-items: center;
+  height: 175px;
+  color: #2b7ccd;
+}
+
+.pm-send-link-dialog__illustration svg {
+  width: 90px;
+  height: 90px;
+  stroke-width: 1.2;
+}
+
+.pm-send-link-dialog__ready {
+  display: flex;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #2bb35a;
+  background: #e9f9f1;
+  color: #158a3b;
+}
+
+.pm-send-link-dialog__ready p,
+.pm-send-link-dialog__ready strong {
+  margin: 0;
+  display: block;
+}
+
+.pm-send-link-dialog__ready p {
+  margin-top: 12px;
+  color: #71777d;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .pm-edit-installment-dialog__totals,
+  .pm-edit-schedule-dialog__lower,
+  .pm-send-link-dialog__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-edit-schedule-dialog__choices {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1100px) {
+  .pm-data-table-card {
+    overflow-x: auto;
+  }
+
+  .pm-data-table-card .pm-table {
+    min-width: 1100px;
+  }
+}
+
+.pm-student-details-banner {
+  overflow: hidden;
+  padding: 0;
+}
+
+.pm-student-details-banner__title {
+  padding: 12px 15px;
+  border-bottom: 1px solid #d4d8df;
+  color: var(--pm-brand);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pm-student-details-banner__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 140px;
+  padding: 14px 22px;
+  background: linear-gradient(105deg, #3baddc 0%, #f6fbff 32%, #ffe0a9 100%);
+}
+
+.pm-student-details-banner__avatar {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  flex: 0 0 104px;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  background: #d6dde4;
+  color: #30445b;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.pm-student-details-banner__identity {
+  display: grid;
+  gap: 15px;
+  min-width: 270px;
+}
+
+.pm-student-details-banner__identity div,
+.pm-student-details-banner__metrics div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pm-student-details-banner__identity span {
+  min-width: 105px;
+  text-decoration: underline;
+}
+
+.pm-student-details-banner__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin-left: auto;
+}
+
+.pm-student-details-banner__metrics div {
+  display: grid;
+  gap: 10px;
+  padding: 14px 10px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.pm-student-details-banner__metrics div:nth-child(2) { background: #e7f8eb; }
+.pm-student-details-banner__metrics div:nth-child(3) { background: #f2e7ff; }
+.pm-student-details-banner__metrics div:nth-child(4) { background: #fff0e2; }
+.pm-student-details-banner__metrics span { text-decoration: underline; }
+
+.pm-student-details-banner__course {
+  padding: 10px 18px;
+  background: #e3efff;
+  font-size: 16px;
+}
+
+.pm-student-details-banner__course span {
+  margin: 0 12px;
+}
+
+.pm-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.pm-overview-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pm-overview-section-heading .pm-section__title {
+  margin: 0;
+}
+
+.pm-overview-section-heading > span {
+  margin-left: auto;
+  color: #86898e;
+  font-size: 13px;
+}
+
+.pm-overview-summary {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pm-overview-summary .pm-section__title {
+  margin: 0;
+  padding: 13px 15px;
+  border-bottom: 1px solid #d4d8df;
+}
+
+.pm-overview-summary__group {
+  padding: 12px 15px;
+}
+
+.pm-overview-summary__group > strong {
+  display: block;
+  margin: -12px -15px 9px;
+  padding: 8px 15px;
+  background: #e5efff;
+  color: var(--pm-brand);
+  font-size: 13px;
+}
+
+.pm-overview-summary__group div {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+}
+
+.pm-overview-summary__payable {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 15px 15px;
+  padding: 14px 10px;
+  background: #d8ebff;
+  color: var(--pm-brand);
+}
+
+.pm-overview-summary__payable strong {
+  font-size: 20px;
+}
+
+.pm-overview-fees {
+  overflow: hidden;
+}
+
+.pm-overview-fees .pm-table {
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .pm-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .pm-student-details-banner__main {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pm-student-details-banner__metrics {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+    width: 100%;
+  }
+}
