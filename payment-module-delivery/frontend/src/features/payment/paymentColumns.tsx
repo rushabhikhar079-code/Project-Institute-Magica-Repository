@@ -4,6 +4,8 @@
 
 import { Edit, Trash2, Plus } from "lucide-react";
 import type { TableColumn } from "../../../../components/common/DataTable";
+import avatarDefault from "../../../../../im-frontend/assets/icons/user-circle.svg";
+import avatarBrand from "../../../../../im-frontend/assets/icons/user-circle-blue.svg";
 import type { PaymentSchedule, PaymentReceipt, Installment } from "./paymentTypes";
 import { formatCurrency } from "./paymentCalculations";
 import { BRAND_COLOR, BRAND_COLOR_LIGHT } from "./paymentConstants";
@@ -33,15 +35,23 @@ export const getScheduleColumns = ({
   {
     key: "studentName",
     header: "Student Name",
-    width: "145px",
+    width: "13%",
     sortable: true,
     sortKey: "studentName",
-    render: (schedule: PaymentSchedule) => schedule.studentName || "-",
+    render: (schedule: PaymentSchedule) => {
+      const avatar = Number(schedule.id.replace(/\\D/g, "")) % 2 === 0 ? avatarBrand : avatarDefault;
+      return (
+        <div className="pm-student-cell">
+          <img className="pm-student-cell__avatar" src={avatar} alt="" />
+          <span>{schedule.studentName || "-"}</span>
+        </div>
+      );
+    },
   },
   {
     key: "studentRegNo",
     header: "Registration No.",
-    width: "160px",
+    width: "11%",
     sortable: true,
     sortKey: "studentRegNo",
     render: (schedule: PaymentSchedule) => schedule.studentRegNo || "-",
@@ -49,14 +59,14 @@ export const getScheduleColumns = ({
   {
     key: "studentMobile",
     header: "Mobile No.",
-    width: "145px",
+    width: "13%",
     sortable: false,
     render: (schedule: PaymentSchedule) => schedule.studentMobile || "-",
   },
   {
     key: "totalPayable",
     header: "Total Fees",
-    width: "135px",
+    width: "10%",
     align: "right",
     sortable: true,
     sortKey: "totalPayable",
@@ -65,7 +75,7 @@ export const getScheduleColumns = ({
   {
     key: "totalPaid",
     header: "Paid Amount",
-    width: "135px",
+    width: "10%",
     align: "right",
     sortable: true,
     sortKey: "totalPaid",
@@ -74,7 +84,7 @@ export const getScheduleColumns = ({
   {
     key: "totalOutstanding",
     header: "Outstanding Bal.",
-    width: "155px",
+    width: "14%",
     align: "right",
     sortable: true,
     sortKey: "totalOutstanding",
@@ -83,7 +93,7 @@ export const getScheduleColumns = ({
   {
     key: "courseName",
     header: "Course",
-    width: "205px",
+    width: "16%",
     sortable: true,
     sortKey: "courseName",
     render: (schedule: PaymentSchedule) => schedule.courseName || "-",
@@ -91,7 +101,7 @@ export const getScheduleColumns = ({
   {
     key: "actions",
     header: "Actions",
-    width: "175px",
+    width: "13%",
     align: "center",
     sortable: false,
     render: (schedule: PaymentSchedule) => {

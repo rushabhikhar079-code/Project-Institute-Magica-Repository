@@ -222,14 +222,77 @@ export const mockSchedules: PaymentSchedule[] = [
   },
 ];
 
+const createManageSchedule = (
+  base: PaymentSchedule,
+  overrides: Partial<PaymentSchedule>,
+): PaymentSchedule => ({
+  ...base,
+  ...overrides,
+  feeLines: base.feeLines.map((line) => ({ ...line })),
+  installments: base.installments.map((installment) => ({ ...installment })),
+});
+
+const managePaymentSchedules: PaymentSchedule[] = [
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-001", studentName: "Rushabh", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Draft", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-002", studentName: "Rushabh", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-003", studentName: "Rajesh", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-004", studentName: "Priya", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-005", studentName: "Ankul", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-006", studentName: "Jayash", studentRegNo: "REG/45", studentMobile: "84599865273",
+    courseName: "IIT-JEE Foundation", status: "Draft", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-007", studentName: "Aditi", studentRegNo: "REG/46", studentMobile: "84599865274",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-008", studentName: "Karan", studentRegNo: "REG/47", studentMobile: "84599865275",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-009", studentName: "Meera", studentRegNo: "REG/48", studentMobile: "84599865276",
+    courseName: "IIT-JEE Foundation", status: "Draft", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+  createManageSchedule(mockSchedules[0], {
+    id: "sch-010", studentName: "Rohit", studentRegNo: "REG/49", studentMobile: "84599865277",
+    courseName: "IIT-JEE Foundation", status: "Active", totalPayable: 6000, totalPaid: 0,
+    totalOutstanding: 6000, totalOutstandingWithoutTax: 6000, totalNetAmount: 6000, totalTax: 0,
+  }),
+];
+
 export const mockReceipts: PaymentReceipt[] = createMockReceipts();
 
 // ─── In-memory store (resets on page reload) ───────────────────────────────────
-let scheduleStore: PaymentSchedule[] = [...mockSchedules];
+let scheduleStore: PaymentSchedule[] = [...managePaymentSchedules];
 let receiptStore: PaymentReceipt[] = [...mockReceipts];
 
 export const resetMockStore = (): void => {
-  scheduleStore = [...mockSchedules];
+  scheduleStore = [...managePaymentSchedules];
   receiptStore = [...mockReceipts];
 };
 

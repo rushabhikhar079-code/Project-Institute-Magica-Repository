@@ -155,7 +155,7 @@ export const ManagePayments: React.FC<ManagePaymentsProps> = ({ branchId, onNavi
               <span className="pm-pagination__current">{searchRequest.pageNumber}</span>
               <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber >= pageCount} onClick={() => handlePageChange(searchRequest.pageNumber + 1)}>Next<ChevronRight className="w-4 h-4" /></button>
               <button type="button" className="pm-pagination__button" disabled={searchRequest.pageNumber >= pageCount} onClick={() => handlePageChange(pageCount)}>Last</button>
-              <span className="pm-pagination__size">Page Size <select className="pm-select pm-select--pagination" value={searchRequest.pageSize} onChange={(event) => setSearchRequest((current) => ({ ...current, pageSize: Number(event.target.value), pageNumber: 1 }))}><option value={10}>10</option><option value={25}>25</option></select></span>
+              <span className="pm-pagination__size">Page Size <select className="pm-select pm-select--pagination" value={searchRequest.pageSize} onChange={(event) => setSearchRequest((current) => ({ ...current, pageSize: Number(event.target.value), pageNumber: 1 }))}><option value={5}>5</option><option value={10}>10</option><option value={25}>25</option></select></span>
             </div>
           </div>
         )}
