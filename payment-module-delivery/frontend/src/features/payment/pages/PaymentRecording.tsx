@@ -72,6 +72,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
         setSelectedOtherFeeIds(
           loadedSchedule.feeLines.filter((line) => line.type === "OtherFee").map((line) => line.id),
         );
+        setRemarks(loadedSchedule.remarks || "");
       }
     } catch {
       setSchedule(null);

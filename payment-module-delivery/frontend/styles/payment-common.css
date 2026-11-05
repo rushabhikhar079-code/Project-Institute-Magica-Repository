@@ -2354,3 +2354,46 @@
 .pm-recording-table th:last-child {
   text-align: center;
 }
+
+.pm-installment-summary-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.pm-installment-summary-boxes > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid #d5d9df;
+  background: #f5f8fc;
+}
+
+.pm-installment-summary-boxes span {
+  color: #5f6875;
+  font-size: 12px;
+}
+
+.pm-installment-summary-boxes strong {
+  color: var(--pm-brand);
+  font-size: 18px;
+}
+
+.pm-other-fees {
+  overflow: hidden;
+}
+
+.pm-other-fees__table {
+  margin-top: 0;
+}
+
+.pm-other-fees__row--selected {
+  background: #edf6ff;
+}
+
+@media (max-width: 640px) {
+  .pm-installment-summary-boxes {
+    grid-template-columns: 1fr;
+  }
+}

@@ -59,7 +59,7 @@ export const PreviewApp: React.FC = () => {
           <CreateSchedule
             branchId={BRANCH_ID}
             onBack={() => setState({ page: "manage" })}
-            onCreated={(id) => setState({ page: "schedule-overview", scheduleId: id })}
+            onSaveAndPay={(id) => setState({ page: "record-payment", scheduleId: id })}
           />
         );
       case "schedule-overview":

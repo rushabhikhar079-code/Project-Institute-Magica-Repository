@@ -16,6 +16,9 @@ import { ADJUSTMENT_OPTIONS } from "../paymentConstants";
 interface InstallmentConfigurationProps {
   installments: Installment[];
   totalPayable: number;
+  initialInstallments?: Installment[];
+  subjectFees?: number;
+  adjustmentSummaryAmount?: number;
   onChange: (installments: Installment[]) => void;
   paymentType: "LumpSum" | "Adhoc" | "Installment";
   onSave?: () => void;
@@ -25,6 +28,9 @@ interface InstallmentConfigurationProps {
 export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> = ({
   installments,
   totalPayable,
+  initialInstallments = [],
+  subjectFees = totalPayable,
+  adjustmentSummaryAmount = 0,
   onChange,
   paymentType,
   onSave,
@@ -41,19 +47,22 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
 
   // ─── Reset Installments ────────────────────────────────────────────────
   const handleReset = useCallback(() => {
+    if (initialInstallments.length > 0) {
+      onChange(initialInstallments.map((inst) => ({ ...inst })));
+      return;
+    }
     const count = installments.length;
     if (count === 0) return;
     const amounts = distributeEqually(totalPayable, count);
-    const updated = installments.map((inst, idx) => ({
+    onChange(installments.map((inst, idx) => ({
       ...inst,
       basicAmount: amounts[idx],
       discountAmount: 0,
       netAmount: amounts[idx],
       outstandingAmount: amounts[idx],
       outstandingWithoutTax: amounts[idx],
-    }));
-    onChange(updated);
-  }, [installments, totalPayable, onChange]);
+    })));
+  }, [initialInstallments, installments, totalPayable, onChange]);
 
   // ─── Equal Distribution ───────────────────────────────────────────────────
   const handleDistributeEqually = useCallback(() => {
@@ -68,7 +77,7 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
       outstandingAmount: amounts[idx],
     }));
     onChange(updated);
-  }, [installments, totalPayable, onChange]);
+  }, [initialInstallments, installments, totalPayable, onChange]);
 
   // ─── Add Installment ──────────────────────────────────────────────────────
   const handleAddInstallment = useCallback(() => {
@@ -299,10 +308,11 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
           <thead>
             <tr>
               <th style={{ width: "40px" }}>#</th>
-              <th style={{ width: "160px" }}>Due Date</th>
-              <th style={{ width: "140px" }}>Basic Amount</th>
+              <th style={{ width: "180px" }}>Installment Name</th>
+              <th style={{ width: "160px" }}>Installment Date</th>
+              <th style={{ width: "140px" }}>Amount</th>
               <th style={{ width: "120px" }}>Discount</th>
-              <th style={{ width: "120px" }}>Net Amount</th>
+              <th style={{ width: "120px" }}>Total</th>
               <th style={{ width: "40px" }}></th>
             </tr>
           </thead>
@@ -310,6 +320,14 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
             {installments.map((inst) => (
               <tr key={inst.id}>
                 <td className="pm-text-center">{inst.installmentNo}</td>
+                <td>
+                  <input
+                    type="text"
+                    className="pm-input pm-input--sm"
+                    value={inst.installmentName}
+                    onChange={(e) => handleUpdateField(inst.id, "installmentName", e.target.value)}
+                  />
+                </td>
                 <td>
                   <input
                     type="date"
@@ -363,7 +381,20 @@ export const InstallmentConfiguration: React.FC<InstallmentConfigurationProps> =
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="pm-table__total-row">
+              <td colSpan={5}>Total Payable</td>
+              <td className="pm-text-right">{formatCurrency(sumNet)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
+      </div>
+
+      <div className="pm-installment-summary-boxes">
+        <div><span>Subject Fees</span><strong>{formatCurrency(subjectFees)}</strong></div>
+        <div><span>Adjustment Amount</span><strong>{formatCurrency(adjustmentSummaryAmount)}</strong></div>
+        <div><span>Total Payable Amount</span><strong>{formatCurrency(totalPayable)}</strong></div>
       </div>
 
       {/* Adjustment Options */}

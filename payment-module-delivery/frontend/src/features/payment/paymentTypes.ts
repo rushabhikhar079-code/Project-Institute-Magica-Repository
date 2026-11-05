@@ -108,6 +108,7 @@ export interface PaymentSchedule {
   totalDiscount: number;
   totalTax: number;
   totalNetAmount: number;
+  remarks?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -219,6 +220,7 @@ export interface ScheduleCreationForm {
   selectedSubjects: SubjectFeeInfo[];
   selectedCourses: CourseFeeInfo[];
   selectedOtherFees: OtherFee[];
+  feeLines: FeeLine[];
   globalDiscount: number;
   installments: Installment[];
   remarks: string;

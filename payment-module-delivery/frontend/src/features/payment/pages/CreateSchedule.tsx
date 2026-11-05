@@ -21,6 +21,7 @@ import {
   getSubjectsMock,
   getCoursesMock,
   createScheduleMock,
+  updateScheduleMock,
 } from "../paymentService";
 import { mockStudents } from "../paymentMockData";
 import {
@@ -43,10 +44,10 @@ import { PaymentSummaryPanel } from "../components/PaymentSummaryPanel";
 interface CreateScheduleProps {
   branchId: number;
   onBack: () => void;
-  onCreated: (scheduleId: string) => void;
+  onSaveAndPay: (scheduleId: string) => void;
 }
 
-export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack, onCreated }) => {
+export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack, onSaveAndPay }) => {
   const [student, setStudent] = useState<StudentSearchResult | null>(mockStudents[0] ?? null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [paymentType, setPaymentType] = useState<PaymentType>("Installment");
@@ -62,6 +63,9 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
   const [remarks, setRemarks] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workflowStep, setWorkflowStep] = useState<"initial" | "installments">("initial");
+  const [initialInstallments, setInitialInstallments] = useState<Installment[]>([]);
+  const [savedScheduleId, setSavedScheduleId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -229,28 +233,37 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
     );
   };
 
-  const handleSave = async () => {
+  const persistSchedule = async (): Promise<string | null> => {
     setError(null);
 
     if (!student) {
       setError("Please select a student.");
-      return;
+      return null;
     }
 
     if (feeLines.length === 0) {
       setError("Please select at least one subject, course, or other fee.");
-      return;
+      return null;
     }
 
     if (!verifyInstallmentSum(installments, totalPayable)) {
       setError(
         `Installment total (${round2(installments.reduce((s, i) => s + i.netAmount, 0)).toFixed(2)}) does not match payable amount (${totalPayable.toFixed(2)}). Please adjust installment amounts.`,
       );
-      return;
+      return null;
     }
 
     setSaving(true);
     try {
+      const scheduleFeeLines = feeLines.map((line, index) =>
+        index === 0 && globalDiscount > 0
+          ? {
+              ...line,
+              discountAmount: round2(line.discountAmount + globalDiscount),
+              netAmount: round2(Math.max(0, line.basicAmount - line.discountAmount - globalDiscount) + line.taxAmount),
+            }
+          : line,
+      );
       const form: ScheduleCreationForm = {
         studentId: student.RegNo,
         studentName: student.Name,
@@ -262,18 +275,63 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         selectedSubjects: subjects.filter((s) => selectedSubjectIds.includes(s.subId)),
         selectedCourses: courses.filter((c) => selectedCourseIds.includes(c.courseId)),
         selectedOtherFees: otherFees.filter((f) => selectedOtherFeeCodes.includes(f.of_code)),
+        feeLines: scheduleFeeLines,
         globalDiscount,
         installments,
         remarks,
       };
 
-      const created = await createScheduleMock(form);
-      onCreated(created.id);
+      const saved = savedScheduleId
+        ? await updateScheduleMock(savedScheduleId, {
+            feeLines: scheduleFeeLines,
+            installments,
+            remarks,
+            paymentType,
+          })
+        : await createScheduleMock(form);
+      if (!saved) return null;
+      setSavedScheduleId(saved.id);
+      return saved.id;
     } catch {
       setError("Failed to create schedule. Please try again.");
+      return null;
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = async () => {
+    const id = await persistSchedule();
+    if (id) setWorkflowStep("installments");
+  };
+
+  const handleSaveAndPay = async () => {
+    const id = await persistSchedule();
+    if (id) onSaveAndPay(id);
+  };
+
+  const handleCreateInstallments = () => {
+    const seeded = installments.length
+      ? installments
+      : distributeEqually(totalPayable, 3).map((amount, index) => ({
+          id: `manual-${Date.now()}-${index}`,
+          installmentNo: index + 1,
+          installmentName: `Installment ${index + 1}`,
+          dueDate: "",
+          basicAmount: amount,
+          discountAmount: 0,
+          taxPercentage: 0,
+          taxAmount: 0,
+          netAmount: amount,
+          paidAmount: 0,
+          outstandingAmount: amount,
+          outstandingWithoutTax: amount,
+          status: "Pending" as const,
+          remarks: "",
+        }));
+    setInstallments(seeded);
+    setInitialInstallments(seeded.map((installment) => ({ ...installment })));
+    setWorkflowStep("installments");
   };
 
   const hasFeeSelection = feeLines.length > 0;
@@ -303,7 +361,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
       </div>
       {error && <SubjectSelectionAlert visible={true} message={error} onDismiss={() => setError(null)} />}
 
-      <section className="pm-card pm-schedule-form-card">
+      {workflowStep === "initial" && <section className="pm-card pm-schedule-form-card">
         <div className="pm-form-section__header"><h3 className="pm-form-section__title">STUDENT &amp; FEE DETAILS</h3></div>
         <div className="pm-schedule-form-card__grid">
           <div className="pm-schedule-form-card__fields">
@@ -321,23 +379,27 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section className="pm-card pm-schedule-form-card">
+      {workflowStep === "initial" && <section className="pm-card pm-schedule-form-card">
         <div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT CONFIGURATION</h3></div>
         <div className="pm-schedule-config-grid">
           <div className="pm-schedule-config-fields">
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">No. Of Installments <i>*</i></span><input className="pm-input" type="number" min="1" max="5" value={installments.length || 3} onChange={(event) => { const count = Math.max(1, Math.min(5, Number(event.target.value) || 1)); const amounts = distributeEqually(totalPayable, count); setInstallments(amounts.map((amount, index) => ({ ...(installments[index] || { id: `inst-${Date.now()}-${index}`, installmentNo: index + 1, installmentName: `Installment ${index + 1}`, dueDate: "", discountAmount: 0, taxPercentage: 0, taxAmount: 0, paidAmount: 0, outstandingWithoutTax: amount, status: "Pending" as const, remarks: "" }), basicAmount: amount, netAmount: amount, outstandingAmount: amount, outstandingWithoutTax: amount }))); }} /><span>Maximum Installments <strong>5</strong></span></div>
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Interval</span><select className="pm-select"><option>1 Month</option><option>3 Months</option></select></div>
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Installment Start Date <i>*</i></span><input className="pm-input" type="date" /></div>
-            <button type="button" className="pm-btn pm-btn--primary" onClick={() => setInstallments(installments.length ? installments : distributeEqually(totalPayable, 3).map((amount, index) => ({ id: `manual-${index}`, installmentNo: index + 1, installmentName: `Name ${index + 1}`, dueDate: "", basicAmount: amount, discountAmount: 0, taxPercentage: 0, taxAmount: 0, netAmount: amount, paidAmount: 0, outstandingAmount: amount, outstandingWithoutTax: amount, status: "Pending", remarks: "" })))} disabled={!hasFeeSelection}>Create Installment Manually</button>
+            <button type="button" className="pm-btn pm-btn--primary" onClick={handleCreateInstallments} disabled={!hasFeeSelection}>Create Installment Manually</button>
           </div>
           <label className="pm-form-group pm-schedule-remarks"><span className="pm-label">Remarks</span><textarea className="pm-textarea" maxLength={2000} rows={5} value={remarks} onChange={(event) => setRemarks(event.target.value)} /><span className="pm-character-count">{remarks.length} / 2000</span></label>
         </div>
-      </section>
+      </section>}
 
-      {hasFeeSelection && <section className="pm-card pm-schedule-manual-card"><div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT DETAILS</h3></div><InstallmentConfiguration installments={installments} totalPayable={totalPayable} onChange={setInstallments} paymentType={paymentType} /></section>}
-      <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>Cancel</button><button type="button" className="pm-btn pm-btn--warning" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save</button><button type="button" className="pm-btn pm-btn--primary" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save &amp; Pay</button></div>
+      {workflowStep === "installments" && hasFeeSelection && <>
+        <section className="pm-card pm-schedule-manual-card"><div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT DETAILS</h3></div><InstallmentConfiguration installments={installments} initialInstallments={initialInstallments} totalPayable={totalPayable} subjectFees={calculateTotalPayable(feeLines.filter((line) => line.type !== "OtherFee"))} adjustmentSummaryAmount={globalDiscount} onChange={setInstallments} paymentType={paymentType} /></section>
+        <ApplicableOtherFees fees={otherFees} selectedCodes={selectedOtherFeeCodes} onToggle={handleToggleOtherFee} />
+        <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={() => setWorkflowStep("initial")}>Cancel</button><button type="button" className="pm-btn pm-btn--warning" onClick={handleSave} disabled={saving || !student || !hasFeeSelection}>Save</button><button type="button" className="pm-btn pm-btn--primary" onClick={handleSaveAndPay} disabled={saving || !student || !hasFeeSelection}>Save &amp; Pay</button></div>
+      </>}
+      {workflowStep === "initial" && <div className="pm-schedule-actions"><button type="button" className="pm-btn pm-btn--secondary" onClick={onBack}>Cancel</button></div>}
       <SubjectSelectionDialog open={showStudentDialog} branchId={branchId} onClose={() => setShowStudentDialog(false)} onSelect={(selected) => setStudent(selected)} />
     </div>
   );
