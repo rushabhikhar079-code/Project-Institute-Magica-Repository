@@ -1,0 +1,11 @@
+{
+  "name": "institute-magica-preview-workspace",
+  "private": true,
+  "workspaces": [
+    "payment-module-delivery/preview"
+  ],
+  "scripts": {
+    "dev": "npm --workspace institute-magica-payment-preview run dev",
+    "build": "npm --workspace institute-magica-payment-preview run build"
+  }
+}
