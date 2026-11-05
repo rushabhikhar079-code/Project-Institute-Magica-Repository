@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { RefreshCw, Search } from "lucide-react";
 import type { PaymentSearchRequest } from "../paymentTypes";
-import { SCHEDULE_STATUS } from "../paymentConstants";
+import { PAYMENT_TYPES, SCHEDULE_STATUS } from "../paymentConstants";
+import { mockCourses, mockStudents, mockSubjects } from "../paymentMockData";
 
 interface PaymentSearchFiltersProps {
   onSearch: (request: PaymentSearchRequest) => void;
@@ -18,6 +19,7 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
   const [regNo, setRegNo] = useState("");
   const [contactNo, setContactNo] = useState("");
   const [status, setStatus] = useState("");
+  const [paymentType, setPaymentType] = useState("");
   const [curriculum, setCurriculum] = useState("");
   const [course, setCourse] = useState("");
   const [subject, setSubject] = useState("");
@@ -30,7 +32,7 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
       curriculum,
       course,
       subject,
-      paymentType: "",
+      paymentType: paymentType as PaymentSearchRequest["paymentType"],
       status: status as PaymentSearchRequest["status"],
       branchId,
       pageNumber: 1,
@@ -45,6 +47,7 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
     setRegNo("");
     setContactNo("");
     setStatus("");
+    setPaymentType("");
     setCurriculum("");
     setCourse("");
     setSubject("");
@@ -72,6 +75,13 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
           <input className="pm-input" placeholder="e.g. 7348737736" value={contactNo} onChange={(event) => setContactNo(event.target.value)} onKeyDown={onEnter} />
         </div>
         <div className="pm-form-group">
+          <label className="pm-label">Payment Type</label>
+          <select className="pm-select" value={paymentType} onChange={(event) => setPaymentType(event.target.value)}>
+            <option value="">All Payment Types</option>
+            {PAYMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+        </div>
+        <div className="pm-form-group">
           <label className="pm-label">Status</label>
           <select className="pm-select" value={status} onChange={(event) => setStatus(event.target.value)}>
             <option value="">Select Status</option>
@@ -82,25 +92,21 @@ export const PaymentSearchFilters: React.FC<PaymentSearchFiltersProps> = ({
           <label className="pm-label">Curriculum</label>
           <select className="pm-select" value={curriculum} onChange={(event) => setCurriculum(event.target.value)}>
             <option value="">Search Curriculum</option>
-            <option value="IIT-JEE">IIT-JEE</option>
-            <option value="NEET">NEET</option>
+            {Array.from(new Set(mockStudents.map((student) => student.Curriculum).filter(Boolean))).map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </div>
         <div className="pm-form-group">
           <label className="pm-label">Course</label>
           <select className="pm-select" value={course} onChange={(event) => setCourse(event.target.value)}>
             <option value="">Select Course</option>
-            <option value="Foundation">IIT-JEE Foundation</option>
-            <option value="Advanced">IIT-JEE Advanced</option>
+            {mockCourses.map((item) => <option key={item.courseId} value={item.courseName}>{item.courseName}</option>)}
           </select>
         </div>
         <div className="pm-form-group">
           <label className="pm-label">Subject</label>
           <select className="pm-select" value={subject} onChange={(event) => setSubject(event.target.value)}>
             <option value="">Select Subject</option>
-            <option value="Physics">Physics</option>
-            <option value="Chemistry">Chemistry</option>
-            <option value="Biology">Biology</option>
+            {mockSubjects.map((item) => <option key={item.subId} value={item.subName}>{item.subName}</option>)}
           </select>
         </div>
         <div className="pm-search-filters__actions">

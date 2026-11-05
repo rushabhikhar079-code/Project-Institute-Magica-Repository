@@ -66,30 +66,36 @@ export const mockCourses: CourseFeeInfo[] = [
 
 // ─── Student Search Results (matches existing /Student/search_students) ────────
 export const mockStudents: StudentSearchResult[] = [
-  { RegNo: "1001", Name: "Aarav Sharma", PContact: "9876543210", EmailId: "aarav@example.com", RegNo_Manual: "IM2024001", RegDate: "15/01/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics, Physics", Curriculum: "CBSE" },
-  { RegNo: "1002", Name: "Diya Patel", PContact: "9876543211", EmailId: "diya@example.com", RegNo_Manual: "IM2024002", RegDate: "20/01/2024", BranchId: 1, CourseNames: "NEET", SubjectNames: "Biology, Chemistry", Curriculum: "CBSE" },
-  { RegNo: "1003", Name: "Arjun Reddy", PContact: "9876543212", EmailId: "arjun@example.com", RegNo_Manual: "IM2024003", RegDate: "05/02/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics, Physics, Chemistry", Curriculum: "ICSE" },
-  { RegNo: "1004", Name: "Ananya Gupta", PContact: "9876543213", EmailId: "ananya@example.com", RegNo_Manual: "IM2024004", RegDate: "10/02/2024", BranchId: 1, CourseNames: "NEET", SubjectNames: "Biology", Curriculum: "CBSE" },
-  { RegNo: "1005", Name: "Vivaan Singh", PContact: "9876543214", EmailId: "vivaan@example.com", RegNo_Manual: "IM2024005", RegDate: "15/03/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics", Curriculum: "State Board" },
+  { RegNo: "1001", Name: "Aarav Sharma", PContact: "9876543210", EmailId: "aarav@example.com", RegNo_Manual: "IM2024001", RegDate: "15/01/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics, Physics", Curriculum: "CBSE", Status: "Active" },
+  { RegNo: "1002", Name: "Diya Patel", PContact: "9876543211", EmailId: "diya@example.com", RegNo_Manual: "IM2024002", RegDate: "20/01/2024", BranchId: 1, CourseNames: "NEET", SubjectNames: "Biology, Chemistry", Curriculum: "CBSE", Status: "Active" },
+  { RegNo: "1003", Name: "Arjun Reddy", PContact: "9876543212", EmailId: "arjun@example.com", RegNo_Manual: "IM2024003", RegDate: "05/02/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics, Physics, Chemistry", Curriculum: "ICSE", Status: "Active" },
+  { RegNo: "1004", Name: "Ananya Gupta", PContact: "9876543213", EmailId: "ananya@example.com", RegNo_Manual: "IM2024004", RegDate: "10/02/2024", BranchId: 1, CourseNames: "NEET", SubjectNames: "Biology", Curriculum: "CBSE", Status: "Active" },
+  { RegNo: "1005", Name: "Vivaan Singh", PContact: "9876543214", EmailId: "vivaan@example.com", RegNo_Manual: "IM2024005", RegDate: "15/03/2024", BranchId: 1, CourseNames: "JEE Main", SubjectNames: "Mathematics", Curriculum: "State Board", Status: "Active" },
 ];
 
 // ─── Mock Schedules ────────────────────────────────────────────────────────────
 const createMockFeeLines = (): FeeLine[] => {
   const mathLine = calculateFeeLine(
     "Mathematics", 16000, 0,
-    createTaxConfig(true, false, 18, "999293"),
+    createTaxConfig(true, false, 0, "999293"),
     "Subject-101", "Subject", "101", FEES_TYPE.SUBJECTWISE,
   );
-  const regLine = calculateFeeLine(
-    "Registration Fee", 500, 0,
-    createTaxConfig(false, false, 0, ""),
-    "OtherFee-1", "OtherFee", "1", FEES_TYPE.OTHER,
-  );
-  const labLine = calculateFeeLine(
-    "Lab Fee", 1200, 0,
-    createTaxConfig(true, false, 18, "999293"),
-    "OtherFee-3", "OtherFee", "3", FEES_TYPE.OTHER,
-  );
+  const regLine = {
+    ...calculateFeeLine(
+      "Registration Fee", 500, 0,
+      createTaxConfig(false, false, 0, ""),
+      "OtherFee-1", "OtherFee", "1", FEES_TYPE.OTHER,
+    ),
+    frequency: mockOtherFees[0].of_FrequencyName,
+  };
+  const labLine = {
+    ...calculateFeeLine(
+      "Lab Fee", 1200, 0,
+      createTaxConfig(true, false, 0, "999293"),
+      "OtherFee-3", "OtherFee", "3", FEES_TYPE.OTHER,
+    ),
+    frequency: mockOtherFees[2].of_FrequencyName,
+  };
   return [mathLine, regLine, labLine];
 };
 
@@ -100,25 +106,25 @@ const createMockInstallments = (feeLines: FeeLine[]): Installment[] => {
   return [
     {
       id: "inst-001", installmentNo: 1, installmentName: "Installment 1", dueDate: "15/01/2024",
-      basicAmount: amounts[0], discountAmount: 0, taxPercentage: 18,
-      taxAmount: round2(amounts[0] * 0.18), netAmount: round2(amounts[0] * 1.18),
+      basicAmount: amounts[0], discountAmount: 0, taxPercentage: 0,
+      taxAmount: 0, netAmount: amounts[0],
       paidAmount: round2(amounts[0] * 1.18), outstandingAmount: 0,
       outstandingWithoutTax: 0,
       status: "Paid", remarks: "First installment", receiptNo: "RCP001",
     },
     {
       id: "inst-002", installmentNo: 2, installmentName: "Installment 2", dueDate: "15/02/2024",
-      basicAmount: amounts[1], discountAmount: 0, taxPercentage: 18,
-      taxAmount: round2(amounts[1] * 0.18), netAmount: round2(amounts[1] * 1.18),
-      paidAmount: round2(amounts[1] * 0.5), outstandingAmount: round2(amounts[1] * 0.68),
+      basicAmount: amounts[1], discountAmount: 0, taxPercentage: 0,
+      taxAmount: 0, netAmount: amounts[1],
+      paidAmount: round2(amounts[1] * 0.5), outstandingAmount: round2(amounts[1] * 0.5),
       outstandingWithoutTax: round2(amounts[1] * 0.5),
       status: "PartiallyPaid", remarks: "",
     },
     {
       id: "inst-003", installmentNo: 3, installmentName: "Installment 3", dueDate: "15/03/2024",
-      basicAmount: amounts[2], discountAmount: 0, taxPercentage: 18,
-      taxAmount: round2(amounts[2] * 0.18), netAmount: round2(amounts[2] * 1.18),
-      paidAmount: 0, outstandingAmount: round2(amounts[2] * 1.18),
+      basicAmount: amounts[2], discountAmount: 0, taxPercentage: 0,
+      taxAmount: 0, netAmount: amounts[2],
+      paidAmount: 0, outstandingAmount: amounts[2],
       outstandingWithoutTax: round2(amounts[2]),
       status: "Pending", remarks: "",
     },
@@ -154,7 +160,7 @@ export const mockSchedules: PaymentSchedule[] = [
   {
     id: "sch-001",
     studentId: "1001", studentName: "Aarav Sharma",
-    studentRegNo: "IM2024001", studentMobile: "9876543210",
+    studentRegNo: "1001", studentManualRegNo: "IM2024001", studentStatus: "Active", studentMobile: "9876543210",
     studentEmail: "aarav@example.com",
     branchId: 1, curriculum: "CBSE", courseName: "JEE Main",
     subjectNames: "Mathematics, Physics",
@@ -174,16 +180,16 @@ export const mockSchedules: PaymentSchedule[] = [
   {
     id: "sch-002",
     studentId: "1002", studentName: "Diya Patel",
-    studentRegNo: "IM2024002", studentMobile: "9876543211",
+    studentRegNo: "1002", studentManualRegNo: "IM2024002", studentStatus: "Active", studentMobile: "9876543211",
     studentEmail: "diya@example.com",
     branchId: 1, curriculum: "CBSE", courseName: "NEET",
     subjectNames: "Biology",
     paymentType: "LumpSum", status: "Completed",
-    feeLines: [calculateFeeLine("Biology", 15000, 0, createTaxConfig(true, true, 18, "999293"), "Subject-104", "Subject", "104", FEES_TYPE.SUBJECTWISE)],
+    feeLines: [calculateFeeLine("Biology", 15000, 0, createTaxConfig(true, true, 0, "999293"), "Subject-104", "Subject", "104", FEES_TYPE.SUBJECTWISE)],
     installments: [{
       id: "inst-101", installmentNo: 1, installmentName: "Lump Sum", dueDate: "20/01/2024",
-      basicAmount: 15000, discountAmount: 0, taxPercentage: 18,
-      taxAmount: round2(15000 - 15000 / 1.18), netAmount: 15000,
+      basicAmount: 15000, discountAmount: 0, taxPercentage: 0,
+      taxAmount: 0, netAmount: 15000,
       paidAmount: 15000, outstandingAmount: 0, outstandingWithoutTax: 0,
       status: "Paid", remarks: "Full payment", receiptNo: "RCP010",
     }],
@@ -197,26 +203,26 @@ export const mockSchedules: PaymentSchedule[] = [
   {
     id: "sch-003",
     studentId: "1003", studentName: "Arjun Reddy",
-    studentRegNo: "IM2024003", studentMobile: "9876543212",
+    studentRegNo: "1003", studentManualRegNo: "IM2024003", studentStatus: "Active", studentMobile: "9876543212",
     studentEmail: "arjun@example.com",
     branchId: 1, curriculum: "ICSE", courseName: "JEE Main",
     subjectNames: "Mathematics, Physics",
     paymentType: "Adhoc", status: "Active",
     feeLines: [
-      calculateFeeLine("Mathematics", 16000, 0, createTaxConfig(true, false, 18, "999293"), "Subject-101", "Subject", "101", FEES_TYPE.SUBJECTWISE),
-      calculateFeeLine("Physics", 14000, 0, createTaxConfig(true, false, 18, "999293"), "Subject-102", "Subject", "102", FEES_TYPE.SUBJECTWISE),
+      calculateFeeLine("Mathematics", 16000, 0, createTaxConfig(true, false, 0, "999293"), "Subject-101", "Subject", "101", FEES_TYPE.SUBJECTWISE),
+      calculateFeeLine("Physics", 14000, 0, createTaxConfig(true, false, 0, "999293"), "Subject-102", "Subject", "102", FEES_TYPE.SUBJECTWISE),
     ],
     installments: [{
       id: "inst-201", installmentNo: 1, installmentName: "Adhoc-1", dueDate: "05/02/2024",
-      basicAmount: 30000, discountAmount: 0, taxPercentage: 18,
-      taxAmount: 5400, netAmount: 35400,
+      basicAmount: 30000, discountAmount: 0, taxPercentage: 0,
+      taxAmount: 0, netAmount: 30000,
       paidAmount: 20000, outstandingAmount: 15400, outstandingWithoutTax: 10000,
       status: "PartiallyPaid", remarks: "Adhoc partial payment",
       receiptNo: "RCP020",
     }],
-    totalPayable: 35400, totalPaid: 20000, totalOutstanding: 15400,
+    totalPayable: 30000, totalPaid: 20000, totalOutstanding: 10000,
     totalOutstandingWithoutTax: 10000,
-    totalDiscount: 0, totalTax: 5400, totalNetAmount: 35400,
+    totalDiscount: 0, totalTax: 0, totalNetAmount: 30000,
     createdAt: "05/02/2024", updatedAt: "05/02/2024",
     createdBy: "Manager",
   },

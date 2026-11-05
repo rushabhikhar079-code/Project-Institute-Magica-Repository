@@ -78,6 +78,8 @@ export const searchStudents = async (
       BranchId: item.branchId ?? 0,
       CourseNames: item.courseNames ?? "-",
       SubjectNames: item.subjectNames ?? "-",
+      Curriculum: item.curriculum ?? item.curriculumName ?? "",
+      Status: item.status ?? "",
     })),
   };
 };
@@ -272,10 +274,12 @@ export const createScheduleMock = async (
     studentId: form.studentId,
     studentName: form.studentName,
     studentRegNo: form.studentRegNo,
+    studentManualRegNo: form.studentManualRegNo,
+    studentStatus: form.studentStatus,
     studentMobile: form.studentMobile,
     studentEmail: form.studentEmail,
     branchId: form.branchId,
-    curriculum: "",
+    curriculum: form.curriculum,
     courseName: form.selectedCourses.map((c) => c.courseName).join(", "),
     subjectNames: form.selectedSubjects.map((s) => s.subName).join(", "),
     paymentType: form.paymentType,

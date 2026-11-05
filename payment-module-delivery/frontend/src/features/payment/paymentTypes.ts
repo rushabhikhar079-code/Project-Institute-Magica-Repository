@@ -43,6 +43,7 @@ export interface FeeLine {
   taxAmount: number; // Tax_Amt — computed
   netAmount: number; // (Basic_Amt - Disc_Amt) + Tax_Amt
   feesType?: string; // 'S', 'M', 'H', 'Other'
+  frequency?: string; // Of_FrequencyName for other fees
 }
 
 // ─── Installment Row (maps to payment_installments table) ──────────────────────
@@ -91,6 +92,8 @@ export interface PaymentSchedule {
   studentId: string; // Stud_Id (RegNo)
   studentName: string;
   studentRegNo: string;
+  studentManualRegNo?: string;
+  studentStatus?: string;
   studentMobile: string; // Contact number
   studentEmail: string;
   branchId: number;
@@ -141,6 +144,7 @@ export interface StudentSearchResult {
   CourseNames: string;
   SubjectNames: string;
   Curriculum: string; // Board / curriculum name
+  Status: string;
 }
 
 export interface StudentSearchResponse {
@@ -177,6 +181,10 @@ export interface SubjectFeeInfo {
   maxInstallment: number;
   adhocSub: number;
   allowProrated: boolean;
+  durationType?: number;
+  noOfMonths?: number;
+  subFeesType?: number;
+  courseFeeWise?: number;
 }
 
 // ─── Course Fee Info ───────────────────────────────────────────────────────────
@@ -190,6 +198,8 @@ export interface CourseFeeInfo {
   allowInstallment: boolean;
   maxInstallment: number;
   adhocCourse: number;
+  durationType?: number;
+  courseFeeWise?: number;
 }
 
 // ─── Payment Link (Email / WhatsApp) ───────────────────────────────────────────
@@ -213,9 +223,12 @@ export interface ScheduleCreationForm {
   studentId: string;
   studentName: string;
   studentRegNo: string;
+  studentManualRegNo: string;
+  studentStatus: string;
   studentMobile: string;
   studentEmail: string;
   branchId: number;
+  curriculum: string;
   paymentType: PaymentType;
   selectedSubjects: SubjectFeeInfo[];
   selectedCourses: CourseFeeInfo[];

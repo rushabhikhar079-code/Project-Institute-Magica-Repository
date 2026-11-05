@@ -10,17 +10,19 @@ interface ApplicableOtherFeesProps {
   studentName: string;
 }
 
-const toFeeLine = (fee: OtherFee): FeeLine =>
-  calculateFeeLine(
+const toFeeLine = (fee: OtherFee): FeeLine => ({
+  ...calculateFeeLine(
     fee.of_name,
     fee.amount,
     0,
-    createTaxConfig(fee.istaxable === 1, fee.isincluding === 1, 18, ""),
+    createTaxConfig(fee.istaxable === 1, fee.isincluding === 1, 0, ""),
     `OtherFee-${fee.of_code}`,
     "OtherFee",
     String(fee.of_code),
     FEES_TYPE.OTHER,
-  );
+  ),
+  frequency: fee.of_FrequencyName,
+});
 
 export const ApplicableOtherFees: React.FC<ApplicableOtherFeesProps> = ({
   fees,
@@ -75,11 +77,11 @@ export const ApplicableOtherFees: React.FC<ApplicableOtherFeesProps> = ({
                 return (
                   <tr key={fee.of_code} className={isSelected ? "pm-other-fees__row--selected" : ""}>
                     <td><label className="pm-checkbox-label"><input type="checkbox" checked={isSelected} onChange={() => onToggle(fee.of_code)} />{fee.of_name}</label></td>
-                    <td>{fee.of_FrequencyName}</td>
+                    <td>{fee.of_FrequencyName || "-"}</td>
                     <td>{formatCurrency(line.basicAmount)}</td>
                     <td>{formatCurrency(line.discountAmount)}</td>
                     <td>{formatCurrency(line.basicAmount - line.discountAmount)}</td>
-                    <td>{formatCurrency(line.taxAmount)} {fee.istaxable === 1 && "(18%)"}</td>
+                    <td>{formatCurrency(line.taxAmount)} {fee.istaxable === 1 && line.taxConfig.taxPercentage > 0 && `(${line.taxConfig.taxPercentage}%)`}</td>
                     <td className="pm-text-semibold">{formatCurrency(line.netAmount)}</td>
                   </tr>
                 );

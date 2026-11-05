@@ -124,7 +124,7 @@ export const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({
 
       <div className="pm-overview-grid">
         <section className="pm-section">
-          <div className="pm-overview-section-heading"><h3 className="pm-section__title">INSTALLMENT</h3><button type="button" className="pm-btn pm-btn--secondary">Edit All Installments</button></div>
+          <div className="pm-overview-section-heading"><h3 className="pm-section__title">INSTALLMENT</h3><button type="button" className="pm-btn pm-btn--secondary" onClick={() => schedule.installments.length > 0 && setEditInstallment(schedule.installments[0])}>Edit All Installments</button></div>
           <ScheduleTable
             installments={schedule.installments}
             onEditInstallment={(inst) => setEditInstallment(inst)}
@@ -139,7 +139,7 @@ export const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({
         </aside>
       </div>
 
-      <section className="pm-section pm-overview-fees"><div className="pm-overview-section-heading"><h3 className="pm-section__title">APPLICABLE OTHER FEES</h3><span>Showing {schedule.feeLines.filter((line) => line.type === "OtherFee").length} Applicable Fees For {schedule.studentName.toUpperCase()}</span><button type="button" className="pm-btn pm-btn--secondary">Show All Other Fees</button></div><table className="pm-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{schedule.feeLines.filter((line) => line.type === "OtherFee").map((line) => <tr key={line.id}><td>{line.name}</td><td>One Time</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody></table></section>
+      <section className="pm-section pm-overview-fees"><div className="pm-overview-section-heading"><h3 className="pm-section__title">APPLICABLE OTHER FEES</h3><span>Showing {schedule.feeLines.filter((line) => line.type === "OtherFee").length} Applicable Fees For {schedule.studentName.toUpperCase()}</span><button type="button" className="pm-btn pm-btn--secondary">Show All Other Fees</button></div><table className="pm-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{schedule.feeLines.filter((line) => line.type === "OtherFee").map((line) => <tr key={line.id}><td>{line.name}</td><td>{line.frequency || "-"}</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody></table></section>
 
       <div className="pm-section">
         <h3 className="pm-section__title">Payment Receipts</h3>

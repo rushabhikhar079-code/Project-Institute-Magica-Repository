@@ -208,7 +208,7 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
 
           <section className="pm-recording-card">
             <div className="pm-recording-card__heading"><h3>APPLICABLE OTHER FEES</h3><span>Showing {otherFeeLines.length} Applicable Fees For {schedule.studentName.toUpperCase()}</span><button type="button" className="pm-btn pm-btn--secondary" onClick={() => setShowAllOtherFees((value) => !value)}>{showAllOtherFees ? "Show Less" : "Show All Other Fees"}</button></div>
-            <div className="pm-recording-table-wrap"><table className="pm-table pm-recording-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{visibleOtherFees.map((line) => <tr key={line.id}><td><input type="checkbox" checked={selectedOtherFeeIds.includes(line.id)} onChange={() => toggleOtherFee(line.id)} /> {line.name}</td><td>One Time</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody><tfoot><tr className="pm-table__total-row"><td colSpan={2}>Selected Other Fees Total ({selectedOtherFees.length} selected)</td><td colSpan={4}></td><td>{formatCurrency(selectedOtherFeesTotal)}</td></tr></tfoot></table></div>
+            <div className="pm-recording-table-wrap"><table className="pm-table pm-recording-table"><thead><tr><th>Other Fees</th><th>Frequency</th><th>Amount</th><th>Discount</th><th>Net</th><th>Tax</th><th>Total</th></tr></thead><tbody>{visibleOtherFees.map((line) => <tr key={line.id}><td><input type="checkbox" checked={selectedOtherFeeIds.includes(line.id)} onChange={() => toggleOtherFee(line.id)} /> {line.name}</td><td>{line.frequency || "-"}</td><td>{formatCurrency(line.basicAmount)}</td><td>{formatCurrency(line.discountAmount)}</td><td>{formatCurrency(line.basicAmount - line.discountAmount)}</td><td>{formatCurrency(line.taxAmount)}</td><td>{formatCurrency(line.netAmount)}</td></tr>)}</tbody><tfoot><tr className="pm-table__total-row"><td colSpan={2}>Selected Other Fees Total ({selectedOtherFees.length} selected)</td><td colSpan={4}></td><td>{formatCurrency(selectedOtherFeesTotal)}</td></tr></tfoot></table></div>
           </section>
 
           <section className="pm-recording-card">
@@ -216,8 +216,18 @@ export const PaymentRecording: React.FC<PaymentRecordingProps> = ({
             <div className="pm-recording-fields">
               <label className="pm-form-group"><span className="pm-label">Payment method</span><select className="pm-select" value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}>{PAYMENT_METHODS.map((method) => <option key={method.value} value={method.value}>{method.label}</option>)}</select></label>
               <label className="pm-form-group"><span className="pm-label">Reference/Transaction Number</span><input className="pm-input" value={receiptNo} onChange={(event) => setReceiptNo(event.target.value)} placeholder="e.g.12347625" /></label>
+              <label className="pm-form-group"><span className="pm-label">Payment Date</span><input className="pm-input" type="date" value={payDate} onChange={(event) => setPayDate(event.target.value)} /></label>
               <label className="pm-form-group"><span className="pm-label">Amount Received</span><input className="pm-input" type="number" min="0" value={amountReceived} onChange={(event) => setAmountReceived(Number(event.target.value) || 0)} /></label>
-              {paymentMethod === "Cheque" && <label className="pm-form-group"><span className="pm-label">Cheque No.</span><input className="pm-input" value={chequeNo} onChange={(event) => setChequeNo(event.target.value)} /></label>}
+              {paymentMethod === "Cheque" && <>
+                <label className="pm-form-group"><span className="pm-label">Cheque No.</span><input className="pm-input" value={chequeNo} onChange={(event) => setChequeNo(event.target.value)} /></label>
+                <label className="pm-form-group"><span className="pm-label">Cheque Date</span><input className="pm-input" type="date" value={chequeDate} onChange={(event) => setChequeDate(event.target.value)} /></label>
+                <label className="pm-form-group"><span className="pm-label">Bank</span><input className="pm-input" value={bank} onChange={(event) => setBank(event.target.value)} /></label>
+                <label className="pm-form-group"><span className="pm-label">Branch Address</span><input className="pm-input" value={branchAddr} onChange={(event) => setBranchAddr(event.target.value)} /></label>
+              </>}
+              {paymentMethod === "BankTransfer" && <>
+                <label className="pm-form-group"><span className="pm-label">Bank</span><input className="pm-input" value={bank} onChange={(event) => setBank(event.target.value)} /></label>
+                <label className="pm-form-group"><span className="pm-label">Branch Address</span><input className="pm-input" value={branchAddr} onChange={(event) => setBranchAddr(event.target.value)} /></label>
+              </>}
             </div>
           </section>
 

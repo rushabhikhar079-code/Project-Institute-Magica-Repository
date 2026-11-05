@@ -33,7 +33,7 @@ import {
   verifyInstallmentSum,
   formatCurrency,
 } from "../paymentCalculations";
-import { PAYMENT_TYPES, FEES_TYPE } from "../paymentConstants";
+import { DEFAULT_TAX_PERCENTAGE, PAYMENT_TYPES, FEES_TYPE } from "../paymentConstants";
 import { SubjectSelectionDialog } from "../dialogs/SubjectSelectionDialog";
 import { SubjectSelection } from "../components/SubjectSelection";
 import { SubjectSelectionAlert } from "../components/SubjectSelectionAlert";
@@ -105,7 +105,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             course.courseName,
             course.courseFees,
             0,
-            createTaxConfig(course.taxable, course.includingTax, 18, course.hsncode),
+            createTaxConfig(course.taxable, course.includingTax, DEFAULT_TAX_PERCENTAGE, course.hsncode),
             `Course-${course.courseId}`,
             "Course",
             String(course.courseId),
@@ -123,7 +123,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             subject.subName,
             subject.fees,
             0,
-            createTaxConfig(subject.taxable, subject.includingTax, 18, subject.hsncode),
+            createTaxConfig(subject.taxable, subject.includingTax, DEFAULT_TAX_PERCENTAGE, subject.hsncode),
             `Subject-${subject.subId}`,
             "Subject",
             String(subject.subId),
@@ -141,13 +141,14 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
             fee.of_name,
             fee.amount,
             0,
-            createTaxConfig(fee.istaxable === 1, fee.isincluding === 1, 18, ""),
+            createTaxConfig(fee.istaxable === 1, fee.isincluding === 1, DEFAULT_TAX_PERCENTAGE, ""),
             `OtherFee-${fee.of_code}`,
             "OtherFee",
             String(fee.of_code),
             FEES_TYPE.OTHER,
           ),
         );
+        lines[lines.length - 1] = { ...lines[lines.length - 1], frequency: fee.of_FrequencyName };
       }
     });
 
@@ -159,6 +160,8 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
     () => round2(Math.max(0, basePayable - globalDiscount)),
     [basePayable, globalDiscount],
   );
+  const configuredMaximums = [...subjects.filter((subject) => selectedSubjectIds.includes(subject.subId)).map((subject) => subject.maxInstallment), ...courses.filter((course) => selectedCourseIds.includes(course.courseId)).map((course) => course.maxInstallment)].filter((maximum) => maximum > 0);
+  const maximumInstallments = configuredMaximums.length > 0 ? Math.min(...configuredMaximums) : 5;
 
   // ─── Initialize / redistribute installments when fee lines or type changes ─
   useEffect(() => {
@@ -275,10 +278,13 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
       const form: ScheduleCreationForm = {
         studentId: student.RegNo,
         studentName: student.Name,
-        studentRegNo: student.RegNo_Manual || student.RegNo,
+        studentRegNo: student.RegNo,
+        studentManualRegNo: student.RegNo_Manual,
+        studentStatus: student.Status,
         studentMobile: student.PContact,
         studentEmail: student.EmailId,
         branchId,
+        curriculum: student.Curriculum,
         paymentType,
         selectedSubjects: subjects.filter((s) => selectedSubjectIds.includes(s.subId)),
         selectedCourses: courses.filter((c) => selectedCourseIds.includes(c.courseId)),
@@ -404,7 +410,7 @@ export const CreateSchedule: React.FC<CreateScheduleProps> = ({ branchId, onBack
         <div className="pm-form-section__header"><h3 className="pm-form-section__title">INSTALLMENT CONFIGURATION</h3></div>
         <div className="pm-schedule-config-grid">
           <div className="pm-schedule-config-fields">
-            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">No. Of Installments <i>*</i></span><input className="pm-input" type="number" min="1" max="5" value={installments.length || 3} onChange={(event) => { const count = Math.max(1, Math.min(5, Number(event.target.value) || 1)); const amounts = distributeEqually(totalPayable, count); setInstallments(amounts.map((amount, index) => ({ ...(installments[index] || { id: `inst-${Date.now()}-${index}`, installmentNo: index + 1, installmentName: `Installment ${index + 1}`, dueDate: "", discountAmount: 0, taxPercentage: 0, taxAmount: 0, paidAmount: 0, outstandingWithoutTax: amount, status: "Pending" as const, remarks: "" }), basicAmount: amount, netAmount: amount, outstandingAmount: amount, outstandingWithoutTax: amount }))); }} /><span>Maximum Installments <strong>5</strong></span></div>
+            <div className="pm-form-row pm-form-row--inline"><span className="pm-label">No. Of Installments <i>*</i></span><input className="pm-input" type="number" min="1" max={maximumInstallments} value={installments.length || 3} onChange={(event) => { const count = Math.max(1, Math.min(maximumInstallments, Number(event.target.value) || 1)); const amounts = distributeEqually(totalPayable, count); setInstallments(amounts.map((amount, index) => ({ ...(installments[index] || { id: `inst-${Date.now()}-${index}`, installmentNo: index + 1, installmentName: `Installment ${index + 1}`, dueDate: "", discountAmount: 0, taxPercentage: 0, taxAmount: 0, paidAmount: 0, outstandingWithoutTax: amount, status: "Pending" as const, remarks: "" }), basicAmount: amount, netAmount: amount, outstandingAmount: amount, outstandingWithoutTax: amount }))); }} /><span>Maximum Installments <strong>{maximumInstallments}</strong></span></div>
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Interval</span><select className="pm-select" value={intervalMonths} onChange={(event) => setIntervalMonths(Number(event.target.value))}><option value={1}>1 Month</option><option value={3}>3 Months</option></select></div>
             <div className="pm-form-row pm-form-row--inline"><span className="pm-label">Installment Start Date <i>*</i></span><input className="pm-input" type="date" value={installmentStartDate} onChange={(event) => setInstallmentStartDate(event.target.value)} /></div>
             <button type="button" className="pm-btn pm-btn--primary" onClick={handleCreateInstallments} disabled={!hasFeeSelection || workflowStep === "installments"}>Create Installment Manually</button>

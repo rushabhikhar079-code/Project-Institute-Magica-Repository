@@ -97,7 +97,7 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId }) => {
       <div className="pm-page__header">
         <div>
           <h1 className="pm-page__title">Payment History</h1>
-          <p className="pm-page__subtitle">Showing transactions for Rushabh - REG-2026-0101</p>
+          <p className="pm-page__subtitle">Showing transactions for {filterStudentName || "all students"}</p>
         </div>
       </div>
 
@@ -130,7 +130,7 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ branchId }) => {
           </div>
           <div className="pm-history-filter__actions">
             <button type="button" className="pm-btn pm-btn--secondary" onClick={handleReset}><RefreshCw className="w-4 h-4" />Reset</button>
-            <button type="button" className="pm-btn pm-btn--primary"><Search className="w-4 h-4" />Search</button>
+            <button type="button" className="pm-btn pm-btn--primary" onClick={() => fetchAllReceipts()}><Search className="w-4 h-4" />Search</button>
           </div>
         </div>
       </section>
